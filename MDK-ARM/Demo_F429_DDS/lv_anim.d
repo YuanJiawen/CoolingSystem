@@ -1,0 +1,31 @@
+demo_f429_dds/lv_anim.o: \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_anim.c \
+  RTE\LVGL\lv_conf_cmsis.h RTE\_Demo_F429_DDS\RTE_Components.h \
+  RTE\_Demo_F429_DDS\Pre_Include_Global.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_anim.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\lv_conf_internal.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\lv_conf_kconfig.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\hal\lv_hal_tick.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\hal\..\lv_conf_internal.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_assert.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_log.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_types.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_mem.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_timer.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_math.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_gc.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\lv_ll.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\lv_img_cache.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\lv_img_decoder.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\lv_conf_internal.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\lv_img_buf.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_color.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\..\lv_conf_internal.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_assert.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_math.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_types.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_area.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\..\misc\lv_fs.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\draw\lv_draw_mask.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\core\lv_obj_pos.h \
+  C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\misc\..\core\..\misc\lv_area.h
