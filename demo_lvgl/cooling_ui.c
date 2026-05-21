@@ -15,16 +15,18 @@ LV_FONT_DECLARE(my_font_chinese_22);
 LV_FONT_DECLARE(my_font_chinese_24);
 
 /* ==================== 颜色宏定义 ==================== */
-#define COLOR_BG_DARK        lv_color_hex(0x1B2838)   
-#define COLOR_CARD_BG        lv_color_hex(0x243447)   
-#define COLOR_TITLE_BAR      lv_color_hex(0x0D47A1)   
-#define COLOR_TEXT_WHITE     lv_color_hex(0xECEFF1)   
-#define COLOR_TEXT_LIGHT     lv_color_hex(0xB0BEC5)   
+#define COLOR_BG_DARK        lv_color_hex(0xF4F8FB)
+#define COLOR_CARD_BG        lv_color_hex(0xFFFFFF)
+#define COLOR_TITLE_BAR      lv_color_hex(0xE8F4FB)
+#define COLOR_TEXT_WHITE     lv_color_hex(0x17324D)
+#define COLOR_TEXT_LIGHT     lv_color_hex(0x5C7184)
+#define COLOR_BORDER_LIGHT   lv_color_hex(0xD6E2EA)
+#define COLOR_PANEL_BG       lv_color_hex(0xF9FCFE)
 #define COLOR_GREEN          lv_color_hex(0x4CAF50)   
 #define COLOR_RED            lv_color_hex(0xF44336)   
 #define COLOR_YELLOW         lv_color_hex(0xFFC107)   
 #define COLOR_ORANGE         lv_color_hex(0xFF9800)   
-#define COLOR_BLUE_ACCENT    lv_color_hex(0x2196F3)   
+#define COLOR_BLUE_ACCENT    lv_color_hex(0x1976D2)
 
 /* ==================== 静态控件句柄 ==================== */
 /* 核心修复 1：增加独立的 meter 句柄，精准控制指针刷新区域 */
@@ -82,7 +84,7 @@ static void create_gauge_meter(lv_obj_t *parent, int32_t x, int32_t y,
     lv_obj_set_size(cont, 200, 270);
     lv_obj_set_pos(cont, x, y);
     lv_obj_set_style_bg_color(cont, COLOR_CARD_BG, 0);
-    lv_obj_set_style_border_color(cont, lv_color_hex(0x37474F), 0);
+    lv_obj_set_style_border_color(cont, COLOR_BORDER_LIGHT, 0);
     lv_obj_set_style_border_width(cont, 1, 0);
     lv_obj_set_style_radius(cont, 12, 0);
     lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
@@ -103,7 +105,7 @@ static void create_gauge_meter(lv_obj_t *parent, int32_t x, int32_t y,
     *out_meter = meter; /* 传出 meter 句柄，用于后续消除拖影 */
 
     lv_meter_scale_t * scale = lv_meter_add_scale(meter);
-    lv_meter_set_scale_ticks(meter, scale, 31, 2, 10, lv_color_hex(0x546E7A));
+    lv_meter_set_scale_ticks(meter, scale, 31, 2, 10, lv_color_hex(0xA8B8C5));
     lv_meter_set_scale_major_ticks(meter, scale, 6, 4, 15, COLOR_TEXT_WHITE, 12);
     lv_meter_set_scale_range(meter, scale, 0, 150, 270, 135);
 
@@ -135,7 +137,7 @@ static lv_obj_t* create_status_row(lv_obj_t *parent, int32_t y_offset,
     lv_obj_t *row = lv_obj_create(parent);
     lv_obj_set_size(row, 280, 50);
     lv_obj_set_style_bg_color(row, COLOR_CARD_BG, 0);
-    lv_obj_set_style_border_color(row, lv_color_hex(0x37474F), 0);
+    lv_obj_set_style_border_color(row, COLOR_BORDER_LIGHT, 0);
     lv_obj_set_style_border_width(row, 1, 0);
     lv_obj_set_style_radius(row, 8, 0);
     lv_obj_align(row, LV_ALIGN_TOP_MID, 0, y_offset);
@@ -202,8 +204,8 @@ void cooling_ui_create(void)
     lv_obj_t *status_panel = lv_obj_create(scr);
     lv_obj_set_size(status_panel, 300, 360);
     lv_obj_set_pos(status_panel, 480, 70);
-    lv_obj_set_style_bg_color(status_panel, lv_color_hex(0x1E3044), 0);
-    lv_obj_set_style_border_color(status_panel, lv_color_hex(0x37474F), 0);
+    lv_obj_set_style_bg_color(status_panel, COLOR_PANEL_BG, 0);
+    lv_obj_set_style_border_color(status_panel, COLOR_BORDER_LIGHT, 0);
     lv_obj_clear_flag(status_panel, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *panel_title_cont = lv_obj_create(status_panel);
@@ -238,8 +240,8 @@ void cooling_ui_create(void)
     lv_obj_align(footer_warn, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
 
     sd_logo_img = lv_img_create(scr);
-    lv_img_set_src(sd_logo_img, "S:/Icon/spintech_logo.jpg");
-    lv_obj_center(sd_logo_img);
+    lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.png");
+    lv_obj_align(sd_logo_img, LV_ALIGN_TOP_RIGHT, -12, 0);
 
     /* ================= 4. 全屏警告遮罩 ================= */
     warning_overlay = lv_obj_create(scr);

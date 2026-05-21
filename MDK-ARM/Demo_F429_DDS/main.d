@@ -262,5 +262,4 @@ demo_f429_dds/main.o: ..\Core\Src\main.c RTE\LVGL\lv_conf_cmsis.h \
   ..\User\bsp_sdram.h ..\usart\bsp_debug_usart.h ..\app\app_control.h \
   ..\event_framework\event_framework.h \
   D:\Repository\STM32Cube_FW_F4_V1.28.2\Drivers\CMSIS\Include\cmsis_compiler.h \
-  ..\pid\PID.h ..\FatFs\inc\fatfs_test.h ..\FatFs\inc\ff.h \
-  ..\FatFs\inc\ffconf.h
+  ..\pid\PID.h

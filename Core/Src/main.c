@@ -43,7 +43,7 @@
 #include "bsp_debug_usart.h"
 #include "app_control.h"
 #include "event_framework.h"
-#include "fatfs_test.h"
+/* #include "fatfs_test.h" */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -148,7 +148,7 @@ int main(void)
 	HAL_Delay(10);
 	cooling_ui_create();
 	App_Control_Init();
-	FatFs_IntegrationTest(); 
+	/* FatFs_IntegrationTest(); */ 
 	HAL_Delay(100);
   /* USER CODE END 2 */
 
