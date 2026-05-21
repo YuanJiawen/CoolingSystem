@@ -95,8 +95,11 @@ void Usart_SendString(uint8_t *str)
 ///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
 int fputc(int ch, FILE *f)
 {
+	(void)f;
+#if DEBUG_USART_PRINTF_ENABLE
 	/* 发送一个字节数据到串口DEBUG_USART */
 	HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 1000);	
+#endif
 	
 	return (ch);
 }

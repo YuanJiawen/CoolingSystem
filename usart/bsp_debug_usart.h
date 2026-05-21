@@ -7,6 +7,11 @@
 //串口波特率
 #define DEBUG_USART_BAUDRATE                    115200
 
+//printf serial output switch: 1=enable, 0=disable
+#ifndef DEBUG_USART_PRINTF_ENABLE
+#define DEBUG_USART_PRINTF_ENABLE               0
+#endif
+
 //引脚定义
 /*******************************************************/
 #define DEBUG_USART                             USART1
