@@ -9,7 +9,7 @@
 
 //printf serial output switch: 1=enable, 0=disable
 #ifndef DEBUG_USART_PRINTF_ENABLE
-#define DEBUG_USART_PRINTF_ENABLE               0
+#define DEBUG_USART_PRINTF_ENABLE               1
 #endif
 
 //Òý½Å¶¨Òå

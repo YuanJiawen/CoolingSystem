@@ -28,6 +28,10 @@ LV_FONT_DECLARE(my_font_chinese_24);
 #define COLOR_ORANGE         lv_color_hex(0xFF9800)   
 #define COLOR_BLUE_ACCENT    lv_color_hex(0x1976D2)
 
+#define STATUS_ICON_SIZE     22
+#define STATUS_ICON_SLOT     24
+#define STATUS_ICON_DIR      "S:/icon_png/"
+
 /* ==================== 静态控件句柄 ==================== */
 /* 核心修复 1：增加独立的 meter 句柄，精准控制指针刷新区域 */
 static lv_obj_t *tank_meter;
@@ -63,6 +67,38 @@ static lv_timer_t *warning_timer;
 /* ==================== 内部工具函数 ==================== */
 
 /* 工业级硬闪烁定时器回调：直接切换容器的隐藏/显示标志位 */
+static uint8_t set_status_icon_src(lv_obj_t *img, const char *icon_file)
+{
+    char icon_path[96];
+    lv_img_header_t header;
+    uint16_t zoom = LV_IMG_ZOOM_NONE;
+    uint32_t max_side;
+    uint32_t scaled_w;
+    uint32_t scaled_h;
+
+    (void)snprintf(icon_path, sizeof(icon_path), "%s%s", STATUS_ICON_DIR, icon_file);
+    lv_obj_set_style_img_recolor(img, COLOR_BLUE_ACCENT, 0);
+    lv_obj_set_style_img_recolor_opa(img, LV_OPA_COVER, 0);
+
+    if(lv_img_decoder_get_info(icon_path, &header) == LV_RES_OK) {
+        lv_img_set_src(img, icon_path);
+        max_side = (header.w > header.h) ? header.w : header.h;
+        if(max_side > STATUS_ICON_SIZE) {
+            zoom = (uint16_t)((STATUS_ICON_SIZE * LV_IMG_ZOOM_NONE) / max_side);
+            if(zoom == 0U) {
+                zoom = 1U;
+            }
+            lv_img_set_zoom(img, zoom);
+        }
+        scaled_w = ((uint32_t)header.w * zoom + (LV_IMG_ZOOM_NONE - 1U)) / LV_IMG_ZOOM_NONE;
+        scaled_h = ((uint32_t)header.h * zoom + (LV_IMG_ZOOM_NONE - 1U)) / LV_IMG_ZOOM_NONE;
+        lv_obj_set_size(img, (lv_coord_t)scaled_w, (lv_coord_t)scaled_h);
+        return 1U;
+    }
+
+    return 0U;
+}
+
 static void warning_blink_cb(lv_timer_t * timer)
 {
     (void)timer;
@@ -131,7 +167,7 @@ static void create_gauge_meter(lv_obj_t *parent, int32_t x, int32_t y,
 }
 
 static lv_obj_t* create_status_row(lv_obj_t *parent, int32_t y_offset,
-                                    const char *title_text, const char *val_text,
+                                    const char *icon_file, const char *title_text, const char *val_text,
                                     lv_obj_t **led_out, lv_obj_t **label_out)
 {
     lv_obj_t *row = lv_obj_create(parent);
@@ -143,16 +179,37 @@ static lv_obj_t* create_status_row(lv_obj_t *parent, int32_t y_offset,
     lv_obj_align(row, LV_ALIGN_TOP_MID, 0, y_offset);
     lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
 
+    lv_obj_t *icon_slot = lv_obj_create(row);
+    lv_obj_set_size(icon_slot, STATUS_ICON_SLOT, STATUS_ICON_SLOT);
+    lv_obj_set_style_bg_opa(icon_slot, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(icon_slot, 0, 0);
+    lv_obj_set_style_pad_all(icon_slot, 0, 0);
+    lv_obj_clear_flag(icon_slot, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_align(icon_slot, LV_ALIGN_LEFT_MID, 6, 0);
+
+    lv_obj_t *icon = lv_img_create(icon_slot);
+    lv_obj_clear_flag(icon, LV_OBJ_FLAG_SCROLLABLE);
+    if(set_status_icon_src(icon, icon_file) != 0U) {
+        lv_obj_center(icon);
+    } else {
+        lv_obj_del(icon);
+        icon = lv_label_create(icon_slot);
+        lv_label_set_text(icon, "!");
+        lv_obj_set_style_text_font(icon, &my_font_chinese_18, 0);
+        lv_obj_set_style_text_color(icon, COLOR_BLUE_ACCENT, 0);
+        lv_obj_center(icon);
+    }
+
     lv_obj_t *title = lv_label_create(row);
     lv_obj_set_style_text_font(title, &my_font_chinese_18, 0);
     lv_obj_set_style_text_color(title, COLOR_BLUE_ACCENT, 0);
     lv_label_set_text(title, title_text);
-    lv_obj_align(title, LV_ALIGN_LEFT_MID, 15, 0);
+    lv_obj_align(title, LV_ALIGN_LEFT_MID, 38, 0);
 
     if (led_out != NULL) {
         *led_out = lv_led_create(row);
         lv_obj_set_size(*led_out, 16, 16);
-        lv_obj_align(*led_out, LV_ALIGN_LEFT_MID, 130, 0);
+        lv_obj_align(*led_out, LV_ALIGN_LEFT_MID, 140, 0);
         lv_led_set_brightness(*led_out, 255);
     }
 
@@ -160,13 +217,24 @@ static lv_obj_t* create_status_row(lv_obj_t *parent, int32_t y_offset,
     lv_obj_set_style_text_font(*label_out, &my_font_chinese_18, 0);
     lv_obj_set_style_text_color(*label_out, COLOR_TEXT_WHITE, 0);
     lv_label_set_text(*label_out, val_text);
-    lv_obj_align(*label_out, LV_ALIGN_LEFT_MID, 160, 0);
+    lv_obj_align(*label_out, LV_ALIGN_LEFT_MID, 168, 0);
 
     return row;
 }
 
 /* ==================== 对外接口实现 ==================== */
 
+void cooling_ui_show_logo_only(void)
+{
+    lv_obj_t *scr = lv_scr_act();
+
+    lv_obj_clean(scr);
+    lv_obj_set_style_bg_color(scr, COLOR_BG_DARK, 0);
+
+    sd_logo_img = lv_img_create(scr);
+    lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.png");
+    lv_obj_center(sd_logo_img);
+}
 void cooling_ui_create(void)
 {
     lv_obj_t *scr = lv_scr_act();
@@ -224,14 +292,14 @@ void cooling_ui_create(void)
     lv_obj_set_style_text_color(panel_title, COLOR_BLUE_ACCENT, 0);
     lv_label_set_text(panel_title, "设备状态");
 
-    create_status_row(status_panel, 50, "冷却剂", "充足", &coolant_level_led, &coolant_level_label);
+    create_status_row(status_panel, 50, "droplet-solid.png", "冷却剂", "充足", &coolant_level_led, &coolant_level_label);
     
-    create_status_row(status_panel, 110, "压力罐", "未连接", &tank_conn_led, &tank_conn_label);
+    create_status_row(status_panel, 110, "bottle-droplet-solid.png", "压力罐", "未连接", &tank_conn_led, &tank_conn_label);
     lv_led_set_color(tank_conn_led, COLOR_RED);
     lv_led_on(tank_conn_led);
 
-    create_status_row(status_panel, 170, "电磁阀", "关闭", &valve_led, &valve_label);
-    create_status_row(status_panel, 230, "加热片", "未开启", &heater_led, &heater_label);
+    create_status_row(status_panel, 170, "snowflake-regular.png", "电磁阀", "关闭", &valve_led, &valve_label);
+    create_status_row(status_panel, 230, "temperature-arrow-up-solid.png", "加热片", "未开启", &heater_led, &heater_label);
 
     lv_obj_t *footer_warn = lv_label_create(scr);
     lv_obj_set_style_text_font(footer_warn, &my_font_chinese_16, 0);

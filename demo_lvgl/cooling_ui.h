@@ -48,6 +48,7 @@ typedef enum {
  * @brief  创建冷却系统监控面板 UI（调用一次即可）
  * @note   内部会创建所有控件并布局到屏幕上
  */
+void cooling_ui_show_logo_only(void);
 void cooling_ui_create(void);
 
 /**

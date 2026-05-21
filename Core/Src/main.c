@@ -151,7 +151,11 @@ int main(void)
 	HAL_Delay(10);
 	cooling_ui_create();
 	App_Control_Init();
+
 	/* FatFs_IntegrationTest(); */ 
+
+	/* FatFs_IntegrationTest(); */
+
 	HAL_Delay(100);
   /* USER CODE END 2 */
 
