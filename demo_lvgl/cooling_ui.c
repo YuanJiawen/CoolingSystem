@@ -240,7 +240,7 @@ void cooling_ui_create(void)
     lv_obj_align(footer_warn, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
 
     sd_logo_img = lv_img_create(scr);
-    lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.png");
+    lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.bin");
     lv_obj_align(sd_logo_img, LV_ALIGN_TOP_RIGHT, -12, 0);
 
     /* ================= 4. 全屏警告遮罩 ================= */

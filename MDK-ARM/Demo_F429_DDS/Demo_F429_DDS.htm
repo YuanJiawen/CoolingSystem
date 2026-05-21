@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Demo_F429_DDS\Demo_F429_DDS.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Demo_F429_DDS\Demo_F429_DDS.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6240002: Last Updated: Thu May 21 10:18:08 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6240002: Last Updated: Thu May 21 13:42:26 2026
 <BR><P>
 <H3>Maximum Stack Usage =       1652 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -874,9 +874,9 @@ Global Symbols
 <P><STRONG><a name="[151]"></a>BSP_Touch_Init</STRONG> (Thumb, 146 bytes, Stack size 48 bytes, bsp_touch.o(.text.BSP_Touch_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = BSP_Touch_Init &rArr; HAL_GPIO_Init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
-<LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
+<BR>[Calls]<UL><LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[152]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
+<LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 </UL>
 <BR>[Called By]<UL><LI><a href="#[452]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_port_indev_init
 </UL>
@@ -952,10 +952,10 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[1ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SD_MspInit
 <LI><a href="#[18e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_LTDC_MspInit
 <LI><a href="#[179]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_MspInit
-<LI><a href="#[1e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 <LI><a href="#[1ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_SDIO_SD_Init
 <LI><a href="#[1ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_I2C2_Init
 <LI><a href="#[1ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_LTDC_Init
+<LI><a href="#[1e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 <LI><a href="#[1e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_DMA2D_Init
 <LI><a href="#[1f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_TIM14_Init
 <LI><a href="#[1f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_TIM13_Init
@@ -1510,7 +1510,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 </UL>
 
-<P><STRONG><a name="[197]"></a>HAL_SDRAM_MspInit</STRONG> (Thumb, 232 bytes, Stack size 56 bytes, fmc.o(.text.HAL_SDRAM_MspInit))
+<P><STRONG><a name="[197]"></a>HAL_SDRAM_MspInit</STRONG> (Thumb, 354 bytes, Stack size 56 bytes, fmc.o(.text.HAL_SDRAM_MspInit))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = HAL_SDRAM_MspInit &rArr; HAL_GPIO_Init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[152]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
@@ -9720,23 +9720,22 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[149]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;evt_publish
 </UL>
 
-<P><STRONG><a name="[64]"></a>main</STRONG> (Thumb, 194 bytes, Stack size 24 bytes, main.o(.text.main))
+<P><STRONG><a name="[64]"></a>main</STRONG> (Thumb, 214 bytes, Stack size 24 bytes, main.o(.text.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 544<LI>Call Chain = main &rArr; cooling_ui_create &rArr; create_gauge_meter &rArr; lv_label_set_text &rArr; lv_label_refr_text &rArr; lv_obj_invalidate &rArr; lv_obj_area_is_visible &rArr; lv_obj_get_transformed_area &rArr; lv_obj_transform_point &rArr;  lv_obj_transform_point (Cycle)
 </UL>
 <BR>[Calls]<UL><LI><a href="#[302]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;evt_dispatch
 <LI><a href="#[141]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;App_Control_Init
 <LI><a href="#[27f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cooling_ui_create
-<LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[451]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_port_fs_init
 <LI><a href="#[452]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_port_indev_init
 <LI><a href="#[450]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_port_disp_init
 <LI><a href="#[3e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;lv_init
 <LI><a href="#[264]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bsp_keyInit
-<LI><a href="#[14d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_SDRAM_Init_Sequence
-<LI><a href="#[1e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 <LI><a href="#[1ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_SDIO_SD_Init
 <LI><a href="#[1ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_I2C2_Init
 <LI><a href="#[1ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_LTDC_Init
+<LI><a href="#[14d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_SDRAM_Init_Sequence
+<LI><a href="#[1e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_FMC_Init
 <LI><a href="#[1e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_DMA2D_Init
 <LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DEBUG_USART_Config
 <LI><a href="#[1e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_DMA_Init
@@ -9749,6 +9748,7 @@ Global Symbols
 <LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[152]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
 <LI><a href="#[1fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config
+<LI><a href="#[14f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
 <LI><a href="#[182]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)

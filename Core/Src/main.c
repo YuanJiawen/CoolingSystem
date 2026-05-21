@@ -112,6 +112,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+  HAL_Delay(200);
 
   /* USER CODE BEGIN Init */
 
@@ -119,6 +120,7 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+  HAL_Delay(200);
 
   /* USER CODE BEGIN SysInit */
 	WIFI_PDN_INIT();
@@ -135,11 +137,12 @@ int main(void)
   MX_DMA_Init();
   DEBUG_USART_Config();
   MX_DMA2D_Init();
+  MX_FMC_Init();
+	BSP_SDRAM_Init_Sequence(&hsdram2);
+	HAL_Delay(100);
   MX_LTDC_Init();
   MX_I2C2_Init();
   MX_SDIO_SD_Init();
-  MX_FMC_Init();
-	BSP_SDRAM_Init_Sequence(&hsdram2);
 	bsp_keyInit();
 	lv_init();
 	lv_port_disp_init();
