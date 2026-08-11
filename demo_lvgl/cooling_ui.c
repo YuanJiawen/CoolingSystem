@@ -245,17 +245,6 @@ static lv_obj_t* create_status_row(lv_obj_t *parent, int32_t y_offset,
 
 /* ==================== 对外接口实现 ==================== */
 
-void cooling_ui_show_logo_only(void)
-{
-    lv_obj_t *scr = lv_scr_act();
-
-    lv_obj_clean(scr);
-    lv_obj_set_style_bg_color(scr, COLOR_BG_DARK, 0);
-
-    sd_logo_img = lv_img_create(scr);
-    lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.png");
-    lv_obj_center(sd_logo_img);
-}
 void cooling_ui_create(void)
 {
     lv_obj_t *scr = lv_scr_act();

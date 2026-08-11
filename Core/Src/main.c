@@ -34,15 +34,13 @@
 #include "lv_port_disp_template.h"
 #include "lv_port_fs_template.h"
 #include "delay_us.h"
-#include <stdlib.h>  
-#include "lv_demo_widgets.h"
+#include <stdlib.h>
 #include "cooling_ui.h"
 #include "bsp_sdram.h"
 #include "bsp_debug_usart.h"
 #include "app_control.h"
 #include "sim_test.h"
 #include "event_framework.h"
-/* #include "fatfs_test.h" */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,7 +89,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-  HAL_Delay(200);
+  HAL_Delay(10);
 
   /* USER CODE BEGIN Init */
 
@@ -99,7 +97,7 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-  HAL_Delay(200);
+  HAL_Delay(50);
 
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
@@ -117,29 +115,23 @@ int main(void)
   MX_DMA2D_Init();
   MX_FMC_Init();
 	BSP_SDRAM_Init_Sequence(&hsdram2);
-	HAL_Delay(100);
+	HAL_Delay(20);
   MX_LTDC_Init();
   MX_SDIO_SD_Init();
 	lv_init();
 	lv_port_disp_init();
 	lv_port_fs_init();
-	HAL_Delay(10);
 	cooling_ui_create();
 
 #if SIM_TEST_ENABLE
 	/* 测试模式:持续虚拟数据驱动 UI(不进工作流程),主循环只刷 LVGL */
 	App_Simulation_Init();
-	HAL_Delay(100);
   /* USER CODE END 2 */
 
   while (1) { lv_task_handler(); }
 #else
 	App_Control_Init();
 
-	/* FatFs_IntegrationTest(); */ 
-	/* FatFs_IntegrationTest(); */
-
-	HAL_Delay(100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
