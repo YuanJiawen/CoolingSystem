@@ -97,7 +97,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
-
+  /* 超压快路径:ADC 转换完成中断(采样完成后立即判超压) */
+  HAL_NVIC_SetPriority(ADC_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(ADC_IRQn);
   /* USER CODE END ADC1_MspInit 1 */
   }
 }

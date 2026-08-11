@@ -134,7 +134,8 @@ void MX_TIM13_Init(void)
 {
 
   /* USER CODE BEGIN TIM13_Init 0 */
-	//5ms LVGL handler
+	//TIM13 中断实际 10ms(CubeMX 默认 PSC=180-1/ARR=5000-1, APB1 Tim 90MHz);
+	//LVGL 时基按实际 10ms 喂给(见 app_control.c App_ISR_TIM13_5ms)
   /* USER CODE END TIM13_Init 0 */
 
   /* USER CODE BEGIN TIM13_Init 1 */
@@ -169,7 +170,7 @@ void MX_TIM14_Init(void)
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 18000-1;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 10000-1;
+  htim14.Init.Period = 5000-1;   /* 修复:原 10000-1 为 2s(90MHz/18000=5kHz, 5000/5000=1s)。CubeMX 同步 */
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)

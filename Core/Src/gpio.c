@@ -58,6 +58,8 @@ void MX_GPIO_Init(void)
 	HAL_GPIO_WritePin(TOUCH_RST_GPIO_Port, TOUCH_RST_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(SPI_FLASH_CS_GPIO_Port, SPI_FLASH_CS_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(LCD_PWR_EN_GPIO_Port, LCD_PWR_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ALARM_EN_GPIO_Port, ALARM_EN_Pin, GPIO_PIN_RESET);
 	
   /*Configure GPIO pin : SW2_Pin */
   GPIO_InitStruct.Pin = SW2_Pin;
@@ -77,6 +79,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PRESSURE_CTRL_EN_Pin ALARM_EN_Pin */
+  GPIO_InitStruct.Pin = PRESSURE_CTRL_EN_Pin|ALARM_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	
 	/*Configure GPIO pin : TOUCH_RST_Pin */
 	GPIO_InitStruct.Pin = TOUCH_RST_Pin;

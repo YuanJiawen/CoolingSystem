@@ -1,6 +1,6 @@
 /**
  * @file    event_framework.h
- * @brief   基于 lwrb 环形缓冲区的事件驱动框架（含有限状态机）
+ * @brief   基于 lwrb 环形缓冲区的事件驱动框架(ISR-safe 消息队列 + 按 event_id 分发)
  */
 
 #ifndef EVENT_FRAMEWORK_H
@@ -20,21 +20,7 @@ extern "C" {
 /* ========================== 事件ID定义 ========================== */
 typedef enum {
     EVT_NONE = 0,
-    /* --- 硬件层事件 --- */
-    EVT_KEY_PRESS,
-    EVT_KEY_RELEASE,
-    EVT_UART_RX,
-    EVT_UART_TX_COMPLETE,
-    EVT_ADC_COMPLETE,
-    EVT_TIMER_TICK,
-    EVT_EXTI_TRIGGER,
-    /* --- 应用层事件 --- */
-    EVT_SENSOR_DATA_READY,
-    EVT_COMM_CONNECTED,
-    EVT_COMM_DISCONNECTED,
-    EVT_ERROR,
-    EVT_STATE_TIMEOUT,
-    
+
     EVT_USER_CUSTOM_START = 0x80,
     EVT_MAX = 0xFF
 } EventId_e;
@@ -47,24 +33,10 @@ typedef struct {
 } Event_t;
 
 /* ========================== 系统状态机定义 ========================== */
-typedef enum {
-    SYS_STATE_INIT = 0,
-    SYS_STATE_IDLE,
-    SYS_STATE_RUNNING,
-    SYS_STATE_ERROR,
-    SYS_STATE_SLEEP,
-    SYS_STATE_MAX
-} SysState_e;
 
 /**
- * @brief 状态机处理函数
- * @return 处理后应转移到的新状态
- */
-typedef SysState_e (*StateHandler_fn)(const Event_t* evt);
-
-/**
- * @brief 全局事件回调函数
- * @return 1: 该事件已被完全消费（拦截），不要再传给状态机; 0: 放行，继续传给状态机
+ * @brief 事件回调函数（按 event_id 注册）
+ * @return 1: 事件已被消费; 0: 未消费（当前框架不区分二者，返回值保留供调用方表达）
  */
 typedef uint8_t (*EventHandler_fn)(const Event_t* evt);
 
@@ -83,18 +55,23 @@ int evt_framework_init(void);
 int evt_publish(uint8_t event_id, uint16_t param, void* data_ptr);
 int evt_publish_event(const Event_t* evt);
 
+/**
+ * @brief 发布唯一事件：同一个 event_id 尚未被消费前不会重复入队。
+ * @note  适合周期 tick/采样/轮询事件，避免主循环偶发变慢时队列被同类事件填满。
+ * @note  注意:同一 event_id 请勿混用 evt_publish 与 evt_publish_unique,
+ *        普通发布不会置 pending 位,混用会破坏去重语义。
+ */
+int evt_publish_unique(uint8_t event_id, uint16_t param, void* data_ptr);
+int evt_publish_unique_event(const Event_t* evt);
+
 int evt_poll(Event_t* evt);
 
 int evt_register_handler(uint8_t event_id, EventHandler_fn handler);
-int evt_register_state_handler(SysState_e state, StateHandler_fn handler);
 
 /**
  * @brief 注册事件溢出丢弃钩子
  */
 void evt_register_drop_hook(EventDropHandler_fn drop_hook);
-
-void evt_set_state(SysState_e state);
-SysState_e evt_get_state(void);
 
 void evt_dispatch(void);
 

@@ -32,16 +32,15 @@
 #include "fmc.h"
 #include "lvgl.h"
 #include "lv_port_disp_template.h"
-#include "lv_port_indev_template.h"
 #include "lv_port_fs_template.h"
 #include "delay_us.h"
 #include <stdlib.h>  
 #include "lv_demo_widgets.h"
-#include "bsp_multibutton.h"
 #include "cooling_ui.h"
 #include "bsp_sdram.h"
 #include "bsp_debug_usart.h"
 #include "app_control.h"
+#include "sim_test.h"
 #include "event_framework.h"
 /* #include "fatfs_test.h" */
 /* USER CODE END Includes */
@@ -53,8 +52,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-volatile uint8_t SwEvent;
-extern void cooling_ui_mock_test(void);
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,25 +69,6 @@ extern void cooling_ui_mock_test(void);
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-static void WIFI_PDN_INIT(void)
-{
-	/*定义一个GPIO_InitTypeDef类型的结构体*/
-	GPIO_InitTypeDef GPIO_InitStruct;
-	/*使能引脚时钟*/	
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	/*选择要控制的GPIO引脚*/															   
-	GPIO_InitStruct.Pin = GPIO_PIN_13;	
-	/*设置引脚的输出类型为推挽输出*/
-	GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;      
-	/*设置引脚为上拉模式*/
-	GPIO_InitStruct.Pull  = GPIO_PULLUP;
-	/*设置引脚速率为高速 */   
-	GPIO_InitStruct.Speed = GPIO_SPEED_FAST; 
-	/*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);	
-	/*禁用WiFi模块*/
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);  
-}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -123,7 +102,6 @@ int main(void)
   HAL_Delay(200);
 
   /* USER CODE BEGIN SysInit */
-	WIFI_PDN_INIT();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -141,19 +119,24 @@ int main(void)
 	BSP_SDRAM_Init_Sequence(&hsdram2);
 	HAL_Delay(100);
   MX_LTDC_Init();
-  MX_I2C2_Init();
   MX_SDIO_SD_Init();
-	bsp_keyInit();
 	lv_init();
 	lv_port_disp_init();
-	lv_port_indev_init();	
 	lv_port_fs_init();
 	HAL_Delay(10);
 	cooling_ui_create();
+
+#if SIM_TEST_ENABLE
+	/* 测试模式:持续虚拟数据驱动 UI(不进工作流程),主循环只刷 LVGL */
+	App_Simulation_Init();
+	HAL_Delay(100);
+  /* USER CODE END 2 */
+
+  while (1) { lv_task_handler(); }
+#else
 	App_Control_Init();
 
 	/* FatFs_IntegrationTest(); */ 
-
 	/* FatFs_IntegrationTest(); */
 
 	HAL_Delay(100);
@@ -168,10 +151,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 			
 //		lv_task_handler();		
-//		cooling_ui_mock_test();	
 		evt_dispatch();		
 	}
   /* USER CODE END 3 */
+#endif
 }
 
 /**

@@ -58,6 +58,7 @@ static lv_obj_t *sd_logo_img;
 
 static lv_obj_t *warning_overlay;
 static lv_obj_t *warning_cont;  
+static lv_obj_t *heartbeat_led;  /* 系统心跳 LED(标题栏左侧,500ms 周期闪烁) */
 static lv_obj_t *warning_icon;
 static lv_obj_t *warning_text;
 
@@ -102,10 +103,30 @@ static uint8_t set_status_icon_src(lv_obj_t *img, const char *icon_file)
 static void warning_blink_cb(lv_timer_t * timer)
 {
     (void)timer;
+    if(warning_cont == NULL) {
+        return;
+    }
     if(lv_obj_has_flag(warning_cont, LV_OBJ_FLAG_HIDDEN)) {
         lv_obj_clear_flag(warning_cont, LV_OBJ_FLAG_HIDDEN); /* 显示 */
     } else {
         lv_obj_add_flag(warning_cont, LV_OBJ_FLAG_HIDDEN);   /* 隐藏 */
+    }
+}
+
+/* 系统心跳 LED 回调:250ms 翻转一次 = 500ms 闪烁周期
+ * 由 LVGL 定时器驱动(在 lv_task_handler 中执行):
+ * 主循环卡死 -> LVGL 不刷新 -> LED 停闪,用于指示系统是否卡死 */
+static void heartbeat_timer_cb(lv_timer_t * timer)
+{
+    (void)timer;
+    if(heartbeat_led == NULL) {
+        return;
+    }
+    /* LVGL 8.x 无 lv_color_eq,用 full 字段比较 */
+    if(lv_obj_get_style_bg_color(heartbeat_led, 0).full == lv_palette_main(LV_PALETTE_GREEN).full) {
+        lv_obj_set_style_bg_color(heartbeat_led, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
+    } else {
+        lv_obj_set_style_bg_color(heartbeat_led, lv_palette_main(LV_PALETTE_GREEN), 0);
     }
 }
 
@@ -264,6 +285,16 @@ void cooling_ui_create(void)
     lv_obj_set_style_text_color(title_lbl, COLOR_TEXT_WHITE, 0);
     lv_label_set_text(title_lbl, "冷却系统实时监控面板");
 
+    /* 标题栏左侧:系统心跳 LED(500ms 周期闪烁)
+     * 主循环卡死 -> LVGL 定时器不执行 -> LED 停闪 */
+    heartbeat_led = lv_obj_create(title_bar);
+    lv_obj_set_size(heartbeat_led, 12, 12);
+    lv_obj_set_style_radius(heartbeat_led, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(heartbeat_led, lv_palette_main(LV_PALETTE_GREEN), 0);
+    lv_obj_set_style_border_width(heartbeat_led, 0, 0);
+    lv_obj_align(heartbeat_led, LV_ALIGN_LEFT_MID, 12, 0);
+    lv_timer_create(heartbeat_timer_cb, 250, NULL); /* 250ms 翻转 = 500ms 闪烁周期 */
+
     /* ================= 2. 左侧仪表盘 ================= */
     create_gauge_meter(scr, 20, 70, &tank_meter, &tank_indic, &tank_value_label, "冷却罐压力");
     create_gauge_meter(scr, 250, 70, &pipe_meter, &pipe_indic, &pipe_value_label, "管路压力");
@@ -343,12 +374,18 @@ void cooling_ui_create(void)
 
     /* 核心修复 2：初始化定时器并立即暂停，等待超压时唤醒 */
     warning_timer = lv_timer_create(warning_blink_cb, 500, NULL);
-    lv_timer_pause(warning_timer);
+    if(warning_timer != NULL) {
+        lv_timer_pause(warning_timer);
+    }
 }
 
 /* -------------- 接口更新 -------------- */
 void cooling_ui_set_tank_pressure(float pressure)
 {
+    if((tank_meter == NULL) || (tank_indic == NULL) || (tank_value_label == NULL)) {
+        return;
+    }
+
     if (pressure < 0) pressure = 0;
     if (pressure > 150) pressure = 150;
     
@@ -365,6 +402,10 @@ void cooling_ui_set_tank_pressure(float pressure)
 
 void cooling_ui_set_pipe_pressure(float pressure)
 {
+    if((pipe_meter == NULL) || (pipe_indic == NULL) || (pipe_value_label == NULL)) {
+        return;
+    }
+
     if (pressure < 0) pressure = 0;
     if (pressure > 150) pressure = 150;
 
@@ -380,24 +421,40 @@ void cooling_ui_set_pipe_pressure(float pressure)
 
 void cooling_ui_show_overpressure_warning(void)
 {
+    if((warning_overlay == NULL) || (warning_cont == NULL)) {
+        return;
+    }
+
     lv_obj_clear_flag(warning_overlay, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(warning_cont, LV_OBJ_FLAG_HIDDEN); /* 确保初始可见 */
     lv_obj_move_foreground(warning_overlay);
     
     /* 启动定时器硬闪烁 */
-    lv_timer_resume(warning_timer);
+    if(warning_timer != NULL) {
+        lv_timer_resume(warning_timer);
+    }
 }
 
 void cooling_ui_hide_overpressure_warning(void)
 {
+    if(warning_overlay == NULL) {
+        return;
+    }
+
     lv_obj_add_flag(warning_overlay, LV_OBJ_FLAG_HIDDEN);
     
     /* 暂停定时器闪烁 */
-    lv_timer_pause(warning_timer);
+    if(warning_timer != NULL) {
+        lv_timer_pause(warning_timer);
+    }
 }
 
 void cooling_ui_set_coolant_level(coolant_level_t level)
 {
+    if((coolant_level_label == NULL) || (coolant_level_led == NULL)) {
+        return;
+    }
+
     switch (level) {
         case COOLANT_LEVEL_FULL:
             lv_label_set_text(coolant_level_label, "充足");
@@ -419,6 +476,10 @@ void cooling_ui_set_coolant_level(coolant_level_t level)
 
 void cooling_ui_set_tank_connection(tank_conn_state_t state)
 {
+    if((tank_conn_label == NULL) || (tank_conn_led == NULL)) {
+        return;
+    }
+
     switch (state) {
         case TANK_CONNECTED:
             lv_label_set_text(tank_conn_label, "已连接");
@@ -437,6 +498,10 @@ void cooling_ui_set_tank_connection(tank_conn_state_t state)
 
 void cooling_ui_set_valve_state(valve_state_t state)
 {
+    if((valve_label == NULL) || (valve_led == NULL)) {
+        return;
+    }
+
     switch (state) {
         case VALVE_OPENED:
             lv_label_set_text(valve_label, "已打开");
@@ -461,6 +526,10 @@ void cooling_ui_set_valve_state(valve_state_t state)
 
 void cooling_ui_set_heater_state(heater_state_t state)
 {
+    if((heater_label == NULL) || (heater_led == NULL)) {
+        return;
+    }
+
     switch (state) {
         case HEATER_ON:
             lv_label_set_text(heater_label, "已开启");

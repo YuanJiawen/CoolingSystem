@@ -77,6 +77,10 @@ void Error_Handler(void);
 #define LEVEL_HIGH_FB_GPIO_Port GPIOA
 #define LEVEL_LOW_FB_Pin GPIO_PIN_10
 #define LEVEL_LOW_FB_GPIO_Port GPIOA
+#define PRESSURE_CTRL_EN_Pin GPIO_PIN_10
+#define PRESSURE_CTRL_EN_GPIO_Port GPIOB
+#define ALARM_EN_Pin GPIO_PIN_11
+#define ALARM_EN_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define TOUCH_INT_Pin GPIO_PIN_13

@@ -55,7 +55,16 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern ADC_HandleTypeDef hadc1;
+/**
+  * @brief ADC 转换完成中断(超压快路径入口)
+  * @note  实际逻辑在 HAL_ADC_ConvCpltCallback(app_control.c)中:
+  *        换算压力 -> 立即判超压 -> 置/清 ALARM GPIO,不依赖 500ms 事件队列。
+  */
+void ADC_IRQHandler(void)
+{
+    HAL_ADC_IRQHandler(&hadc1);
+}
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

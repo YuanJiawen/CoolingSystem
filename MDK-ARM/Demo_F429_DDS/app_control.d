@@ -252,4 +252,5 @@ demo_f429_dds/app_control.o: ..\app\app_control.c \
   C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\extra\widgets\imgbtn\..\..\..\lvgl.h \
   C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\extra\widgets\span\lv_span.h \
   C:\Users\jiawe\AppData\Local\Arm\Packs\LVGL\lvgl\8.3.10\src\extra\widgets\span\..\..\..\lvgl.h \
-  ..\demo_lvgl\cooling_ui.h
+  ..\demo_lvgl\cooling_ui.h ..\app\cooling_control.h \
+  ..\app\cooling_control_config.h

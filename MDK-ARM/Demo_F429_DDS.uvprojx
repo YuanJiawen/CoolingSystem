@@ -314,7 +314,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Device/ST/STM32F4xx/Include;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Include;../delay;../demo_lvgl;../User;../MultiButton-master;..\lwrb\include\lwrb;..\event_framework;..\app;..\pid;..\bsp_sdio;..\FatFs\inc;..\usart</IncludePath>
+              <IncludePath>../Core/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Device/ST/STM32F4xx/Include;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Include;../delay;../demo_lvgl;../User;..\lwrb\include\lwrb;..\event_framework;..\app;..\pid;..\bsp_sdio;..\FatFs\inc;..\usart</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -851,21 +851,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>MultiButton</GroupName>
-          <Files>
-            <File>
-              <FileName>bsp_multibutton.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\MultiButton-master\bsp_multibutton.c</FilePath>
-            </File>
-            <File>
-              <FileName>multi_button.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\MultiButton-master\multi_button.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>lvgl_demo</GroupName>
           <Files>
             <File>
@@ -892,11 +877,6 @@
               <FileName>bsp_sdram.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\bsp_sdram.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_touch.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\bsp_touch.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -970,6 +950,16 @@
               <FileName>app_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\app\app_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>cooling_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\cooling_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>sim_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\sim_test.c</FilePath>
             </File>
           </Files>
         </Group>
