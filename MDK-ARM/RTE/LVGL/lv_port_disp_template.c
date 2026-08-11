@@ -28,6 +28,7 @@ static void disp_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_
  * CPU 在这上面计算抗锯齿和透明度的速度，是在外部 SDRAM 上算的几十倍！
  */
 static lv_color_t buf_1[MY_DISP_HOR_RES * 40];
+static lv_color_t buf_2[MY_DISP_HOR_RES * 40];
 
 extern LTDC_HandleTypeDef hltdc;
 extern SDRAM_HandleTypeDef hsdram2;

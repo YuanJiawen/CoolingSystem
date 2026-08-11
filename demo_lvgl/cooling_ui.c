@@ -58,7 +58,7 @@ static lv_obj_t *sd_logo_img;
 
 static lv_obj_t *warning_overlay;
 static lv_obj_t *warning_cont;  
-static lv_obj_t *heartbeat_led;  /* 系统心跳 LED(标题栏左侧,500ms 周期闪烁) */
+static lv_obj_t *heartbeat_led;  /* 系统心跳 LED(lv_led,标题栏左侧,1s 周期闪烁,带晕影) */
 static lv_obj_t *warning_icon;
 static lv_obj_t *warning_text;
 
@@ -113,20 +113,20 @@ static void warning_blink_cb(lv_timer_t * timer)
     }
 }
 
-/* 系统心跳 LED 回调:250ms 翻转一次 = 500ms 闪烁周期
+/* 系统心跳 LED 回调:500ms 翻转一次 = 1s 闪烁周期(纯绿色亮/灭)
  * 由 LVGL 定时器驱动(在 lv_task_handler 中执行):
  * 主循环卡死 -> LVGL 不刷新 -> LED 停闪,用于指示系统是否卡死 */
 static void heartbeat_timer_cb(lv_timer_t * timer)
 {
     (void)timer;
-    if(heartbeat_led == NULL) {
-        return;
-    }
-    /* LVGL 8.x 无 lv_color_eq,用 full 字段比较 */
-    if(lv_obj_get_style_bg_color(heartbeat_led, 0).full == lv_palette_main(LV_PALETTE_GREEN).full) {
-        lv_obj_set_style_bg_color(heartbeat_led, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
+    if(heartbeat_led == NULL) return;
+    /* 亮=带晕影绿光, 灭=完全隐藏(不留暗圆点) */
+    if(lv_obj_has_flag(heartbeat_led, LV_OBJ_FLAG_HIDDEN)) {
+        lv_led_on(heartbeat_led);
+        lv_obj_clear_flag(heartbeat_led, LV_OBJ_FLAG_HIDDEN);
     } else {
-        lv_obj_set_style_bg_color(heartbeat_led, lv_palette_main(LV_PALETTE_GREEN), 0);
+        lv_led_off(heartbeat_led);
+        lv_obj_add_flag(heartbeat_led, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -274,15 +274,14 @@ void cooling_ui_create(void)
     lv_obj_set_style_text_color(title_lbl, COLOR_TEXT_WHITE, 0);
     lv_label_set_text(title_lbl, "冷却系统实时监控面板");
 
-    /* 标题栏左侧:系统心跳 LED(500ms 周期闪烁)
-     * 主循环卡死 -> LVGL 定时器不执行 -> LED 停闪 */
-    heartbeat_led = lv_obj_create(title_bar);
-    lv_obj_set_size(heartbeat_led, 12, 12);
-    lv_obj_set_style_radius(heartbeat_led, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(heartbeat_led, lv_palette_main(LV_PALETTE_GREEN), 0);
-    lv_obj_set_style_border_width(heartbeat_led, 0, 0);
+    /* 标题栏左侧:系统心跳 LED(lv_led 带晕影,16x16,1s 周期闪烁) */
+    heartbeat_led = lv_led_create(title_bar);
+    lv_obj_set_size(heartbeat_led, 16, 16);
+    lv_led_set_color(heartbeat_led, lv_palette_main(LV_PALETTE_GREEN));
+    lv_led_set_brightness(heartbeat_led, 255);
     lv_obj_align(heartbeat_led, LV_ALIGN_LEFT_MID, 12, 0);
-    lv_timer_create(heartbeat_timer_cb, 250, NULL); /* 250ms 翻转 = 500ms 闪烁周期 */
+    lv_led_on(heartbeat_led);
+    lv_timer_create(heartbeat_timer_cb, 500, NULL); /* 500ms 翻转 = 1s 闪烁周期 */
 
     /* ================= 2. 左侧仪表盘 ================= */
     create_gauge_meter(scr, 20, 70, &tank_meter, &tank_indic, &tank_value_label, "冷却罐压力");
