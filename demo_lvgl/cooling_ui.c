@@ -28,6 +28,9 @@ LV_FONT_DECLARE(my_font_chinese_24);
 #define COLOR_ORANGE         lv_color_hex(0xFF9800)   
 #define COLOR_BLUE_ACCENT    lv_color_hex(0x1976D2)
 
+/* 压力预警阈值(PSI):数值文本超过此值变红(预警,区别于 130 PSI 超压关断) */
+#define PRESSURE_WARN_PSI    120.0f
+
 #define STATUS_ICON_SIZE     22
 #define STATUS_ICON_SLOT     24
 #define STATUS_ICON_DIR      "S:/icon_png/"
@@ -400,7 +403,14 @@ void cooling_ui_set_tank_pressure(float pressure)
     /* 传入正确的 tank_meter 句柄 */
     lv_meter_set_indicator_value(tank_meter, tank_indic, (int32_t)pressure);
     lv_label_set_text_fmt(tank_value_label, "%d.%d PSI", p_int, p_frac);
-    
+
+    /* 压力超过预警阈值时数值文本变红,否则恢复默认色 */
+    if (pressure > PRESSURE_WARN_PSI) {
+        lv_obj_set_style_text_color(tank_value_label, COLOR_RED, 0);
+    } else {
+        lv_obj_set_style_text_color(tank_value_label, COLOR_TEXT_WHITE, 0);
+    }
+
     /* 核心修复 1：强制重绘整个仪表盘，彻底消灭由于抗锯齿溢出带来的指针拖影 */
     lv_obj_invalidate(tank_meter);
 }
@@ -419,7 +429,14 @@ void cooling_ui_set_pipe_pressure(float pressure)
 
     lv_meter_set_indicator_value(pipe_meter, pipe_indic, (int32_t)pressure);
     lv_label_set_text_fmt(pipe_value_label, "%d.%d PSI", p_int, p_frac);
-    
+
+    /* 压力超过预警阈值时数值文本变红,否则恢复默认色 */
+    if (pressure > PRESSURE_WARN_PSI) {
+        lv_obj_set_style_text_color(pipe_value_label, COLOR_RED, 0);
+    } else {
+        lv_obj_set_style_text_color(pipe_value_label, COLOR_TEXT_WHITE, 0);
+    }
+
     /* 核心修复 1：强制重绘整个仪表盘 */
     lv_obj_invalidate(pipe_meter);
 }
