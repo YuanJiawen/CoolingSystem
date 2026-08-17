@@ -321,10 +321,27 @@ void cooling_ui_create(void)
     create_status_row(status_panel, 230, "temperature-arrow-up-solid.png", "加热片", "未开启", &heater_led, &heater_label);
 
     lv_obj_t *footer_warn = lv_label_create(scr);
-    lv_obj_set_style_text_font(footer_warn, &my_font_chinese_16, 0);
+    lv_obj_set_style_text_font(footer_warn, &my_font_chinese_22, 0);
     lv_obj_set_style_text_color(footer_warn, COLOR_RED, 0);
-    lv_label_set_text(footer_warn, "存在高压 非专业人员请勿操作该设备！");
-    lv_obj_align(footer_warn, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
+
+    const char footer_warn_text[] = "存在高压 非专业人员请勿操作该设备！";
+    lv_label_set_text(footer_warn, footer_warn_text);
+
+    /* 水平居中于仪表区域(x=20..450,中心 x=235),用实测文本宽度精确居中;
+     * 垂直:自仪表矩形下边缘(y=340)向下偏移 2× 字体行高(25px)定位,
+     * 即标签顶部在 y=340+50=390,近似居中于下方空白区。 */
+    lv_coord_t warn_w = lv_txt_get_width(footer_warn_text,
+                                         (uint32_t)(sizeof(footer_warn_text) - 1U),
+                                         &my_font_chinese_22, 0, LV_TEXT_FLAG_NONE);
+    lv_obj_align(footer_warn, LV_ALIGN_TOP_LEFT, 235 - warn_w / 2,
+                 340 + 2 * my_font_chinese_22.line_height);
+
+    /* 右下角署名(小字) */
+    lv_obj_t *credit_label = lv_label_create(scr);
+    lv_obj_set_style_text_font(credit_label, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(credit_label, lv_color_hex(0x8C9AA6), 0);
+    lv_label_set_text(credit_label, "Designed and Developed by Jiawen Yuan.");
+    lv_obj_align(credit_label, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
 
     sd_logo_img = lv_img_create(scr);
     lv_img_set_src(sd_logo_img, "S:/IconDir/spintech_icon_120x50.bin");
