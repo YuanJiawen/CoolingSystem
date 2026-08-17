@@ -1,0 +1,24 @@
+# ============ Keil MDK 构建产物 ============
+*.o
+*.d
+*.axf
+*.map
+*.htm
+*.dep
+*.crf
+*.lst
+*.lnp
+*.iex
+*.hex
+build_log.htm
+
+# ============ Keil MDK / STM32CubeMX 工程状态 ============
+# 工程文件可由 Demo_F429_DDS.ioc + RTE 重新生成,不入库
+*.uvguix.*
+*.uvoptx
+*.uvprojx
+
+# ============ 工具 / 代理状态 ============
+.reasonix/
+reasonix.toml
+zcode/
