@@ -30,7 +30,14 @@ DMA_HandleTypeDef hdma_sdio_tx;
 
 /* SDIO init function */
 
-void MX_SDIO_SD_Init(void)
+/**
+  * @brief  SD 卡初始化(非致命版本)
+  * @note   无卡/初始化失败不再调用 Error_Handler 死循环,而是复位句柄状态
+  *         并返回失败。后续 lv_port_fs_init() 的 f_mount 会经 disk_initialize()
+  *         重新尝试 HAL_SD_Init;仍失败时 UI 图标降级为占位符,设备正常开机。
+  * @retval 1 初始化成功;0 失败(句柄已复位,可由 FatFs 层稍后重试)
+  */
+uint8_t MX_SDIO_SD_Init(void)
 {
 
   /* USER CODE BEGIN SDIO_Init 0 */
@@ -49,16 +56,22 @@ void MX_SDIO_SD_Init(void)
   hsd.Init.ClockDiv = 2;
   if (HAL_SD_Init(&hsd) != HAL_OK)
   {
-    Error_Handler();
+    /* 非致命:复位句柄(hsd.State -> RESET),保证后续 f_mount 触发
+     * disk_initialize() 时走完整的重新初始化分支,
+     * 而不是误走 "Reusing SDIO initialized" 分支(该分支假定卡已在位)。 */
+    (void)HAL_SD_DeInit(&hsd);
+    return 0U;
   }
   if (HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B) != HAL_OK)
   {
-    Error_Handler();
+    (void)HAL_SD_DeInit(&hsd);
+    return 0U;
   }
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
 
+  return 1U;
 }
 
 void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)

@@ -38,7 +38,7 @@ extern SD_HandleTypeDef hsd;
 
 /* USER CODE END Private defines */
 
-void MX_SDIO_SD_Init(void);
+uint8_t MX_SDIO_SD_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

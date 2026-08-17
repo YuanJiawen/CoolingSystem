@@ -41,6 +41,7 @@
 #include "app_control.h"
 #include "sim_test.h"
 #include "event_framework.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,7 +118,12 @@ int main(void)
 	BSP_SDRAM_Init_Sequence(&hsdram2);
 	HAL_Delay(20);
   MX_LTDC_Init();
-  MX_SDIO_SD_Init();
+  /* SD 卡非致命初始化:无卡/失败不阻塞开机(sdio.c 已去掉 Error_Handler 死循环),
+   * 由下方 lv_port_fs_init() 的 f_mount 经 disk_initialize() 重试;
+   * 仍失败时图标降级为 "!" 占位符,设备正常进入工作流程。 */
+  if (MX_SDIO_SD_Init() == 0U) {
+    printf("[main] SD init failed, system continues with placeholder icons.\r\n");
+  }
 	lv_init();
 	lv_port_disp_init();
 	lv_port_fs_init();
