@@ -1,9 +1,8 @@
 /**
  * @file    fake/stm32f4xx_hal.h
- * @brief   SDIO 非致命化回归测试用 HAL 桩头文件(host 专用,非硬件代码)
+ * @brief   host 测试用 HAL 桩头文件(非硬件代码,由各测试替身提供实现)
  *
- * 仅提供 sdio.c 编译所需的类型/宏/函数声明;具体行为由
- * test_sdio_nofatal.c 中的测试替身实现。
+ * 提供 sdio.c / pressure_sampler.c 等被测模块编译所需的类型/宏/函数声明。
  */
 #ifndef FAKE_STM32F4XX_HAL_H
 #define FAKE_STM32F4XX_HAL_H
@@ -25,6 +24,7 @@ typedef enum {
 
 /* ---------- 外设结构(仅编译所需字段) ---------- */
 typedef struct { int dummy; } SDIO_TypeDef;
+typedef struct { int dummy; } ADC_TypeDef;
 typedef struct { int dummy; } GPIO_TypeDef;
 typedef struct { int dummy; } DMA_Stream_TypeDef;
 
@@ -59,6 +59,14 @@ typedef struct {
     DMA_HandleTypeDef  *hdmatx;
 } SD_HandleTypeDef;
 
+typedef struct {
+    ADC_TypeDef *Instance;
+} ADC_HandleTypeDef;
+
+typedef struct {
+    uint32_t Channel, Rank, SamplingTime;
+} ADC_ChannelConfTypeDef;
+
 /* ---------- 实例基址宏 ---------- */
 #define SDIO  ((SDIO_TypeDef *)0x40012C00UL)
 #define GPIOC ((GPIO_TypeDef *)0x40020800UL)
@@ -74,6 +82,11 @@ typedef struct {
 #define SDIO_HARDWARE_FLOW_CONTROL_ENABLE 1U
 #define SDIO_BUS_WIDE_4B                 1U
 
+/* ---------- ADC ---------- */
+#define ADC_CHANNEL_1            1U
+#define ADC_CHANNEL_2            2U
+#define ADC_SAMPLETIME_480CYCLES 480U
+
 /* ---------- GPIO ---------- */
 #define GPIO_PIN_2   0x0002U
 #define GPIO_PIN_8   0x0100U
@@ -85,6 +98,11 @@ typedef struct {
 #define GPIO_PULLUP              1U
 #define GPIO_SPEED_FREQ_VERY_HIGH 3U
 #define GPIO_AF12_SDIO          12U
+
+typedef enum {
+    GPIO_PIN_RESET = 0,
+    GPIO_PIN_SET   = 1
+} GPIO_PinState;
 
 /* ---------- DMA ---------- */
 #define DMA_CHANNEL_4          4U
@@ -124,6 +142,10 @@ HAL_StatusTypeDef HAL_DMA_Init(DMA_HandleTypeDef *hdma);
 HAL_StatusTypeDef HAL_DMA_DeInit(DMA_HandleTypeDef *hdma);
 void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init);
 void HAL_GPIO_DeInit(GPIO_TypeDef *GPIOx, uint32_t GPIO_Pin);
+void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
+HAL_StatusTypeDef HAL_ADC_ConfigChannel(ADC_HandleTypeDef *hadc, ADC_ChannelConfTypeDef *sConfig);
+HAL_StatusTypeDef HAL_ADC_Start_IT(ADC_HandleTypeDef *hadc);
+uint32_t HAL_ADC_GetValue(ADC_HandleTypeDef *hadc);
 void HAL_NVIC_SetPriority(uint32_t IRQn, uint32_t PreemptPriority, uint32_t SubPriority);
 void HAL_NVIC_EnableIRQ(uint32_t IRQn);
 void HAL_NVIC_DisableIRQ(uint32_t IRQn);

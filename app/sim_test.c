@@ -17,7 +17,7 @@
 #include "cooling_ui.h"
 #include "lvgl.h"
 #include "main.h"       /* HAL_TIM_Base_Start_IT, tim 句柄 */
-#include "cooling_control_config.h"  /* COOLING_CTRL_OVERPRESSURE_PSI */
+#include "cooling_control_config.h"  /* cooling_control_default_config 单源阈值 */
 
 /* 外部定时器句柄(供 LVGL tick 推进) */
 extern TIM_HandleTypeDef htim13;
@@ -61,8 +61,8 @@ static void sim_timer_cb(lv_timer_t * t)
     cooling_ui_set_pipe_pressure(s_press_pipe);
 
     /* ---- 2. 超压警告(随压力实时变化,同步 PB11 硬件报警) ---- */
-    if (s_press_tank > COOLING_CTRL_OVERPRESSURE_PSI ||
-        s_press_pipe > COOLING_CTRL_OVERPRESSURE_PSI) {
+    if (s_press_tank > cooling_control_default_config.overpressure_psi ||
+        s_press_pipe > cooling_control_default_config.overpressure_psi) {
         cooling_ui_show_overpressure_warning();
         HAL_GPIO_WritePin(ALARM_EN_GPIO_Port, ALARM_EN_Pin, GPIO_PIN_SET);
     } else {
@@ -71,7 +71,7 @@ static void sim_timer_cb(lv_timer_t * t)
     }
 
     /* ---- 3. PB10 压力控制器使能(管道压力 > 20 PSI) ---- */
-    if (s_press_pipe > COOLING_CTRL_ENABLE_PSI) {
+    if (s_press_pipe > cooling_control_default_config.ctrl_enable_psi) {
         HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_SET);
     } else {
         HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_RESET);

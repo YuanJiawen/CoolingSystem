@@ -7,11 +7,10 @@ extern "C" {
 
 #include <stdint.h>
 #include "event_framework.h"
-#include "PID.h"
 
 /* 利用框架预留的自定义事件起始地址定义应用事件 */
 typedef enum {
-    APP_EVT_ADC_PID = EVT_USER_CUSTOM_START,    // 500ms事件
+    APP_EVT_CONTROL = EVT_USER_CUSTOM_START,    // 500ms事件(采样+加热+阀)
     APP_EVT_LVGL_TICK,                          // 5ms事件
     APP_EVT_VALVE_CHECK                         // 1s事件
 } AppEventId_e;
@@ -19,7 +18,7 @@ typedef enum {
 /* ========================== API 接口 ========================== */
 
 /**
- * @brief  应用层初始化（包含 PID 初始化、事件注册等）
+ * @brief  应用层初始化（事件框架 + 压力采样适配器 + 事件注册等）
  */
 void App_Control_Init(void);
 

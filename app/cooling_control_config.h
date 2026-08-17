@@ -1,11 +1,10 @@
 /**
  * @file    cooling_control_config.h
- * @brief   冷却控制配置 —— 唯一权威源(候选 2 单源化)
+ * @brief   冷却控制配置 —— 唯一权威源
  *
  * 规则:
- * - 控制周期、PWM 尺度、PID 参数、压力阈值只在本文件定义。
- * - 定时器(CubeMX 生成)必须与之匹配,启动时由 app 层调用
- *   CoolingControl_ValidateConfig() 校验,不一致则显式报错。
+ * - 加热片固定占空比、压力阈值只在本文件定义。
+ * - 加热片为开环固定占空比(无 PID);超压时由 app 层关断(两通道 PWM 归零)。
  */
 
 #ifndef COOLING_CONTROL_CONFIG_H
@@ -17,48 +16,22 @@
 extern "C" {
 #endif
 
-/* ====================== 控制周期 ====================== */
-/* 必须与 TIM11 中断周期一致(当前 500ms) */
-#define COOLING_CTRL_SAMPLE_TIME_MS    500
-#define COOLING_CTRL_SAMPLE_TIME_S     ((COOLING_CTRL_SAMPLE_TIME_MS) / 1000.0f)
-
-/* ====================== PWM 输出尺度 ====================== */
-/* 必须与 TIM8 ARR+1 一致(当前 ARR = 10000-1) */
-#define COOLING_CTRL_PWM_LIM_MAX       10000.0f
-#define COOLING_CTRL_PWM_LIM_MIN       0.0f
-
-/* ====================== PID 参数 ====================== */
-/* 【需用户整定】 */
-#define COOLING_CTRL_PID_KP            1.0f
-#define COOLING_CTRL_PID_KI            0.5f
-#define COOLING_CTRL_PID_KD            0.0f
-#define COOLING_CTRL_PID_TAU           0.02f
-#define COOLING_CTRL_PID_LIM_MIN_INT   (-5000.0f)
-#define COOLING_CTRL_PID_LIM_MAX_INT   (5000.0f)
+/* ====================== 加热片固定占空比 ====================== */
+/* 与 TIM8 ARR+1 尺度一致(当前 ARR=10000-1,即 10000 满量程)。
+ * 2000 = 20% 占空比。两通道各自独立,便于单独整定。 */
+#define COOLING_CTRL_HEATER_DUTY_CH1    2000.0f  /* 通道1(罐侧) */
+#define COOLING_CTRL_HEATER_DUTY_CH2    2000.0f  /* 通道2(管侧) */
 
 /* ====================== 压力阈值(PSI) ====================== */
 #define COOLING_CTRL_TANK_CONNECTED_PSI 20.0f
 #define COOLING_CTRL_ENABLE_PSI         20.0f
 #define COOLING_CTRL_OVERPRESSURE_PSI   130.0f
 
-/* ====================== 通道数 ====================== */
-#define COOLING_CTRL_CHANNELS           2
-
 /* ====================== 默认配置实例 ====================== */
-/* 两通道共用同一份参数;如需独立整定,改为 CoolingCtrlConfig 数组 */
 static const CoolingCtrlConfig cooling_control_default_config = {
-    .kp               = COOLING_CTRL_PID_KP,
-    .ki               = COOLING_CTRL_PID_KI,
-    .kd               = COOLING_CTRL_PID_KD,
-    .tau              = COOLING_CTRL_PID_TAU,
-    .lim_min          = COOLING_CTRL_PWM_LIM_MIN,
-    .lim_max          = COOLING_CTRL_PWM_LIM_MAX,
-    .lim_min_int      = COOLING_CTRL_PID_LIM_MIN_INT,
-    .lim_max_int      = COOLING_CTRL_PID_LIM_MAX_INT,
-    .sample_time_s    = COOLING_CTRL_SAMPLE_TIME_S,
     .tank_connected_psi = COOLING_CTRL_TANK_CONNECTED_PSI,
-    .ctrl_enable_psi  = COOLING_CTRL_ENABLE_PSI,
-    .overpressure_psi = COOLING_CTRL_OVERPRESSURE_PSI,
+    .ctrl_enable_psi    = COOLING_CTRL_ENABLE_PSI,
+    .overpressure_psi   = COOLING_CTRL_OVERPRESSURE_PSI,
 };
 
 #ifdef __cplusplus
