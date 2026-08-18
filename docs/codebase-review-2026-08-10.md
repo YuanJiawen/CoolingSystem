@@ -76,3 +76,13 @@
 | 测试装备 | **已单源**:`tests/host/fake/check.h` + 桩 HAL + `run_common.sh`;入口 `tests/host/run_all.sh`(5 套件全 PASS) |
 
 仍开放:A7(采样滞后一个周期,文档化接受)、A8(液位异常分支静默)、A15(printf 默认关闭)、A16(触摸 EXTI 无消费者)、A18(`HAL_TIM_Base_Start_IT` 返回值未检查)。
+
+## 五、显示性能评审后续(2026-08-18,D1~D5)
+
+| 项 | 处置 |
+| --- | --- |
+| D1 异步冲洗流水线 | 已实现后**回退**(仿真模式显示卡死待隔离,嫌疑未排除,恢复排查时从 disp port 状态机宿主反馈环入手) |
+| D2 UI 无变化守卫 | **已提交**(cc5c74e);若上板复现指针拖影,回退为值变化时全仪表 invalidate |
+| D3 超压闪烁收敛 | **已实现未提交**:warning_overlay 800×480 → 800×70 横幅,闪烁重绘 ~5.8% |
+| D4 PLLSAIM=0 违例 | **前提证伪,关闭**:F429 的 RCC_PLLSAICFGR 无 PLLSAIM 位(仅 F446 有),PLLSAI 输入 = HSE/主PLLM 共享分频;VCO 100MHz/像素钟 25MHz/~54.9Hz 为合法设计值,ltdc.c 已留核查注释 |
+| D5 主循环 WFI | **已提交**(cc5c74e) |

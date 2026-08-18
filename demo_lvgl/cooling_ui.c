@@ -352,8 +352,10 @@ void cooling_ui_create(void)
     lv_obj_align(sd_logo_img, LV_ALIGN_TOP_RIGHT, -12, 0);
 
     /* ================= 4. 全屏警告遮罩 ================= */
+    /* 超压警告横幅(2026-08-18 显示性能评审 D3):白底红字,面积收敛为
+     * 800x70 居中横幅 —— 闪烁只重绘 ~5.8% 屏幕,不再全屏重渲染。 */
     warning_overlay = lv_obj_create(scr);
-    lv_obj_set_size(warning_overlay, 800, 480);
+    lv_obj_set_size(warning_overlay, 800, 70);
     lv_obj_set_style_bg_color(warning_overlay, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(warning_overlay, LV_OPA_COVER, 0);
     lv_obj_clear_flag(warning_overlay, LV_OBJ_FLAG_SCROLLABLE);

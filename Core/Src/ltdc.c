@@ -99,6 +99,11 @@ void HAL_LTDC_MspInit(LTDC_HandleTypeDef* ltdcHandle)
 
   /** Initializes the peripherals clock
   */
+    /* PLLSAI 时钟核查结论(2026-08-18 显示性能评审 D4,前提证伪):
+     * F429 的 RCC_PLLSAICFGR 无 PLLSAIM 位(保留,仅 F446 有);
+     * PLLSAI 输入 = HSE / 主PLL M(共享)= 25MHz/15 ≈ 1.667MHz。
+     * VCO = 1.667MHz x N(60) = 100MHz(合法下限)→ R=2 → 50MHz → DivR=2
+     * → 25MHz 像素钟(~54.9Hz)。当前配置合法且为设计值,无需修改。 */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
     PeriphClkInitStruct.PLLSAI.PLLSAIN = 60;
     PeriphClkInitStruct.PLLSAI.PLLSAIR = 2;
