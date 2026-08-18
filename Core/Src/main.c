@@ -148,7 +148,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 			
 //		lv_task_handler();		
-		evt_dispatch();		
+		/* 无事件则睡眠,任意中断(TIM13 10ms 时基 / ADC 采样)唤醒 */
+		if (!evt_dispatch()) {
+			__WFI();
+		}		
 	}
   /* USER CODE END 3 */
 #endif

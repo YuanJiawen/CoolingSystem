@@ -69,8 +69,9 @@ int evt_register_handler(uint8_t event_id, EventHandler_fn handler);
 
 /**
  * @brief 分发一个事件(主循环轮询调用;无事件时立即返回)
+ * @return 1 已分发一个事件; 0 队列空(主循环可据此 __WFI 睡眠)
  */
-void evt_dispatch(void);
+int evt_dispatch(void);
 
 /* ========================== 平台相关临界区宏 ========================== */
 #define EVT_ENTER_CRITICAL()                       \

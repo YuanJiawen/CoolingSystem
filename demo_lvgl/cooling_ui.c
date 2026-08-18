@@ -389,18 +389,31 @@ void cooling_ui_create(void)
 }
 
 /* -------------- 接口更新 -------------- */
+/* 无变化守卫:显示值未变(< 0.1 PSI,与标签分辨率一致)则不触碰任何 LVGL 对象,
+ * 稳态下零失效零重绘;v8.3 中 set_text/set_color 相同值仍会触发失效,须自行跳过。 */
+#define PRESSURE_UNCHANGED_EPS 0.05f
+
 void cooling_ui_set_tank_pressure(float pressure)
 {
+    static float s_last = -1.0f; /* 哨兵:首调必更新 */
+
     if((tank_meter == NULL) || (tank_indic == NULL) || (tank_value_label == NULL)) {
         return;
     }
 
     pressure = CoolingControl_DisplayPressure(pressure); /* 单源钳位(死区+量程) */
 
+    float delta = pressure - s_last;
+    if (delta < 0.0f) { delta = -delta; }
+    if (delta < PRESSURE_UNCHANGED_EPS) {
+        return; /* 显示值未变:指针/标签/颜色全部跳过 */
+    }
+    s_last = pressure;
+
     int p_int = (int)pressure;
     int p_frac = (int)((pressure - (float)p_int) * 10);
 
-    /* 传入正确的 tank_meter 句柄 */
+    /* lv_meter 内部按新旧指针角度 bbox(外扩线宽+2px)精准失效,无需全仪表重绘 */
     lv_meter_set_indicator_value(tank_meter, tank_indic, (int32_t)pressure);
     lv_label_set_text_fmt(tank_value_label, "%d.%d PSI", p_int, p_frac);
 
@@ -410,18 +423,24 @@ void cooling_ui_set_tank_pressure(float pressure)
     } else {
         lv_obj_set_style_text_color(tank_value_label, COLOR_TEXT_WHITE, 0);
     }
-
-    /* 核心修复 1：强制重绘整个仪表盘，彻底消灭由于抗锯齿溢出带来的指针拖影 */
-    lv_obj_invalidate(tank_meter);
 }
 
 void cooling_ui_set_pipe_pressure(float pressure)
 {
+    static float s_last = -1.0f; /* 哨兵:首调必更新 */
+
     if((pipe_meter == NULL) || (pipe_indic == NULL) || (pipe_value_label == NULL)) {
         return;
     }
 
     pressure = CoolingControl_DisplayPressure(pressure); /* 单源钳位(死区+量程) */
+
+    float delta = pressure - s_last;
+    if (delta < 0.0f) { delta = -delta; }
+    if (delta < PRESSURE_UNCHANGED_EPS) {
+        return; /* 显示值未变:指针/标签/颜色全部跳过 */
+    }
+    s_last = pressure;
 
     int p_int = (int)pressure;
     int p_frac = (int)((pressure - (float)p_int) * 10);
@@ -435,13 +454,18 @@ void cooling_ui_set_pipe_pressure(float pressure)
     } else {
         lv_obj_set_style_text_color(pipe_value_label, COLOR_TEXT_WHITE, 0);
     }
-
-    /* 核心修复 1：强制重绘整个仪表盘 */
-    lv_obj_invalidate(pipe_meter);
 }
+
+/* 超压告警态共享守卫(0=正常,1=告警中):show/hide 重复调用零副作用 */
+static uint8_t s_warning_active = 0;
 
 void cooling_ui_show_overpressure_warning(void)
 {
+    if (s_warning_active) {
+        return; /* 已在告警态:不重复触碰(闪烁定时器自行工作) */
+    }
+    s_warning_active = 1;
+
     if((warning_overlay == NULL) || (warning_cont == NULL)) {
         return;
     }
@@ -449,7 +473,7 @@ void cooling_ui_show_overpressure_warning(void)
     lv_obj_clear_flag(warning_overlay, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(warning_cont, LV_OBJ_FLAG_HIDDEN); /* 确保初始可见 */
     lv_obj_move_foreground(warning_overlay);
-    
+
     /* 启动定时器硬闪烁 */
     if(warning_timer != NULL) {
         lv_timer_resume(warning_timer);
@@ -458,12 +482,17 @@ void cooling_ui_show_overpressure_warning(void)
 
 void cooling_ui_hide_overpressure_warning(void)
 {
+    if (!s_warning_active) {
+        return; /* 已在正常态:不重复触碰 */
+    }
+    s_warning_active = 0;
+
     if(warning_overlay == NULL) {
         return;
     }
 
     lv_obj_add_flag(warning_overlay, LV_OBJ_FLAG_HIDDEN);
-    
+
     /* 暂停定时器闪烁 */
     if(warning_timer != NULL) {
         lv_timer_pause(warning_timer);
@@ -472,6 +501,12 @@ void cooling_ui_hide_overpressure_warning(void)
 
 void cooling_ui_set_coolant_level(coolant_level_t level)
 {
+    static int8_t s_last = -1; /* 哨兵:首调必更新 */
+    if ((int8_t)level == s_last) {
+        return; /* 状态未变:v8.3 相同 set_text/color 仍触发失效,须自行跳过 */
+    }
+    s_last = (int8_t)level;
+
     if((coolant_level_label == NULL) || (coolant_level_led == NULL)) {
         return;
     }
@@ -497,6 +532,12 @@ void cooling_ui_set_coolant_level(coolant_level_t level)
 
 void cooling_ui_set_tank_connection(tank_conn_state_t state)
 {
+    static int8_t s_last = -1; /* 哨兵:首调必更新 */
+    if ((int8_t)state == s_last) {
+        return; /* 状态未变:跳过 */
+    }
+    s_last = (int8_t)state;
+
     if((tank_conn_label == NULL) || (tank_conn_led == NULL)) {
         return;
     }
@@ -519,6 +560,12 @@ void cooling_ui_set_tank_connection(tank_conn_state_t state)
 
 void cooling_ui_set_valve_state(valve_state_t state)
 {
+    static int8_t s_last = -1; /* 哨兵:首调必更新 */
+    if ((int8_t)state == s_last) {
+        return; /* 状态未变:跳过 */
+    }
+    s_last = (int8_t)state;
+
     if((valve_label == NULL) || (valve_led == NULL)) {
         return;
     }
@@ -547,6 +594,12 @@ void cooling_ui_set_valve_state(valve_state_t state)
 
 void cooling_ui_set_heater_state(heater_state_t state)
 {
+    static int8_t s_last = -1; /* 哨兵:首调必更新 */
+    if ((int8_t)state == s_last) {
+        return; /* 状态未变:跳过 */
+    }
+    s_last = (int8_t)state;
+
     if((heater_label == NULL) || (heater_led == NULL)) {
         return;
     }

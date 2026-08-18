@@ -5,7 +5,7 @@
  * 覆盖:
  *   1. init + publish_unique + dispatch:处理器收到正确 id/param
  *   2. 去重:消费前重复发布,一次投递;消费后可再发布
- *   3. dispatch 无事件/无处理器:静默返回
+ *   3. dispatch 无事件/无处理器:空转返回 0,无处理器事件返回 1
  *   4. register_handler 参数校验(NULL 拒绝)
  *   5. 满载覆盖:有效容量 32 事件,发布 34 个不同 id → 最旧 2 个被丢,
  *      其余按序投递,被丢 id 的 pending 位已清(可再次发布)
@@ -90,21 +90,21 @@ int run_tests(void)
     evt_publish_unique(0x80, 1, NULL);
     evt_publish_unique(0x80, 2, NULL);     /* 消费前重复 → 合并 */
     g_handler_calls = 0;
-    evt_dispatch();
-    evt_dispatch();                        /* 第二次应无事件 */
+    CHECK(evt_dispatch() == 1, __LINE__);
+    CHECK(evt_dispatch() == 0, __LINE__);  /* 第二次:队列空 */
     CHECK(g_handler_calls == 1, __LINE__);
     CHECK(g_last_evt_param == 1, __LINE__); /* 保留首次参数 */
 
     evt_publish_unique(0x80, 3, NULL);     /* 消费后可再发布 */
     g_handler_calls = 0;
-    evt_dispatch();
+    CHECK(evt_dispatch() == 1, __LINE__);
     CHECK(g_handler_calls == 1, __LINE__);
     CHECK(g_last_evt_param == 3, __LINE__);
 
     /* ---- 场景 3:无事件 / 无处理器 ---- */
-    evt_dispatch();                        /* 队列空:静默返回 */
+    CHECK(evt_dispatch() == 0, __LINE__);  /* 队列空:静默返回 */
     evt_publish_unique(0x81, 7, NULL);     /* 0x81 未注册处理器 */
-    evt_dispatch();                        /* 投递但无人消费:不崩溃 */
+    CHECK(evt_dispatch() == 1, __LINE__);  /* 已出队即视为分发 */
     CHECK(g_primask == 0, __LINE__);
 
     /* ---- 场景 4:register 参数校验 ---- */

@@ -116,14 +116,15 @@ int evt_register_handler(uint8_t event_id, EventHandler_fn handler) {
     return 0;
 }
 
-void evt_dispatch(void) {
+int evt_dispatch(void) {
     Event_t evt;
 
     if (evt_poll_one(&evt) != 0) {
-        return; // 无事件
+        return 0; // 无事件
     }
 
     if (evt.event_id <= EVT_MAX && evt_handlers[evt.event_id] != NULL) {
         (void)evt_handlers[evt.event_id](&evt);
     }
+    return 1;
 }
