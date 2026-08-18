@@ -56,3 +56,23 @@
 ## 三、Keil RTE 触摸残留说明
 
 `lv_port_indev_template.c/.h` 位于 Keil 管理的 RTE 目录,删除后 Keil 重开工程会自动从 pack 恢复(当前为 `#if 0` 未启用模板,不参与编译、无功能影响)。**彻底移除需在 Keil 的 Manage Run-Time Environment 中取消 LVGL 的 Porting 组件**。用户代码(`bsp_touch.*`)已完全删除且工程条目已移除。
+
+## 四、执行记录(2026-08-18,架构评审候选 1~6)
+
+| 原条目 | 处置 |
+| --- | --- |
+| A2 / .ioc 脱钩 | **已同步**:`.ioc` 补 TIM11/13/14 参数段,TIM8 Pulse 5000→2000 与 tim.c 一致;下次 CubeMX 重新生成不再丢配置 |
+| A10 钳位双写 | **已修**:显示钳位收编为 `CoolingControl_DisplayPressure` 纯函数(app_control 与 cooling_ui 单源消费) |
+| A17 快照并发 | **已修**:采样器发布/读取置于 PRIMASK 临界区,`s_busy` 加 volatile(候选 2) |
+| 超压关断滞后 | **已修**:新模块 `cooling_actuator` 单写者接管 TIM8 PWM / ALARM_EN / PRESSURE_CTRL_EN;ISR 快路径直接令加热片归零(候选 1) |
+| TIM13 命名谎言 | **已改**:`App_ISR_TIM13_5ms` → `App_ISR_TIM13_10ms`,注释更新 |
+| B4 `delay/` | **已删**(含 Keil 工程条目与 include 路径) |
+| B8 事件框架死接口 | **已删**:接口收缩为 init / publish_unique / register_handler / dispatch,新增宿主测试 `test_event_framework.c`(含满载覆盖、去重、临界区配平) |
+| B10 `my_font_chinese_32.c` | **已删**(含 Keil 工程条目) |
+| `bsp_sdio/` 空目录 | **已删** |
+| B13 构建残留 | 仓库内仅 `.sct` 受跟踪,其余为 .gitignore 覆盖的未跟踪产物,无需处理 |
+| zcode/ 等 AI 工具残留 | 已由 .gitignore 覆盖,未入 git,磁盘保留 |
+| `VALVE_DIAG_IN`(PA8) | **保留**(硬件未定型);引脚已配置、`VALVE_FAULT` UI 态暂不可达,待传感器语义确定后接入 1s 检查事件 |
+| 测试装备 | **已单源**:`tests/host/fake/check.h` + 桩 HAL + `run_common.sh`;入口 `tests/host/run_all.sh`(5 套件全 PASS) |
+
+仍开放:A7(采样滞后一个周期,文档化接受)、A8(液位异常分支静默)、A15(printf 默认关闭)、A16(触摸 EXTI 无消费者)、A18(`HAL_TIM_Base_Start_IT` 返回值未检查)。

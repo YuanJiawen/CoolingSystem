@@ -4,6 +4,7 @@
 #include "cooling_ui.h"
 #include "cooling_control.h"
 #include "cooling_control_config.h"
+#include "cooling_actuator.h"
 #include "pressure_sampler.h"
 /* 外部硬件句柄声明 (根据你的实际工程可能需要修改) */
 extern ADC_HandleTypeDef hadc1;
@@ -33,27 +34,21 @@ static uint8_t on_control_event(const Event_t* evt)
     float pressure_1 = snap.valid ? snap.pressure[0] : 0.0f;
     float pressure_2 = snap.valid ? snap.pressure[1] : 0.0f;
 
-    /* 3. 安全门控:超压 → 关断加热片(两通道 PWM 归零);否则写固定占空比 */
+    /* 3. 安全门控:超压 → 关断加热片(两通道 PWM 归零);否则写固定占空比
+     *    (执行器单写者;ISR 内已先行锁存,此处按快照维持/恢复) */
     uint8_t overpressure = CoolingControl_IsOverpressure(cfg, pressure_1, pressure_2);
-    __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1,
-                          overpressure ? 0U : (uint32_t)COOLING_CTRL_HEATER_DUTY_CH1);
-    __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2,
-                          overpressure ? 0U : (uint32_t)COOLING_CTRL_HEATER_DUTY_CH2);
+    CoolingActuator_HeaterSetDuty(overpressure ? 0U : (uint32_t)COOLING_CTRL_HEATER_DUTY_CH1,
+                                  overpressure ? 0U : (uint32_t)COOLING_CTRL_HEATER_DUTY_CH2);
 
     /* 4. 电磁阀使能(独立于加热/超压,基于管道压力阈值)+ UI 状态同步 */
-    if (CoolingControl_ValveEnable(cfg, pressure_2)) {
-        HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_SET);
-        cooling_ui_set_valve_state(VALVE_OPENED);
-    } else {
-        HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_RESET);
-        cooling_ui_set_valve_state(VALVE_CLOSED);
-    }
+    uint8_t valve_enable = CoolingControl_ValveEnable(cfg, pressure_2);
+    CoolingActuator_ValveSetEnable(valve_enable);
+    cooling_ui_set_valve_state(valve_enable ? VALVE_OPENED : VALVE_CLOSED);
 
-    /* 5. 状态快照转发 UI(超压 GPIO 已在中断内实时置位,这里同步告警 UI) */
-    float display_pressure_1 = (pressure_1 < 1.0f) ? 0.0f : pressure_1;
-    float display_pressure_2 = (pressure_2 < 1.0f) ? 0.0f : pressure_2;
-    cooling_ui_set_tank_pressure(display_pressure_1);
-    cooling_ui_set_pipe_pressure(display_pressure_2);
+    /* 5. 状态快照转发 UI(超压 GPIO 已在中断内实时置位,这里同步告警 UI);
+      *    控制判定(上面 3/4 步)用原始压力,显示走单源钳位 */
+    cooling_ui_set_tank_pressure(CoolingControl_DisplayPressure(pressure_1));
+    cooling_ui_set_pipe_pressure(CoolingControl_DisplayPressure(pressure_2));
 
     if (CoolingControl_IsTankConnected(cfg, pressure_1)) {
         cooling_ui_set_tank_connection(TANK_CONNECTED);
@@ -136,31 +131,27 @@ void App_Control_Init(void) {
     /* 1. 初始化框架 */
     evt_framework_init();
 
-    /* 2. 初始化压力采样适配器(双通道 ADC + 超压快路径 + ALARM GPIO) */
-    PressureSampler_Init(&hadc1, &cooling_control_default_config,
-                         ALARM_EN_GPIO_Port, ALARM_EN_Pin);
+    /* 2. 初始化冷却执行器(上电安全不变量:先归零 compare 再启动 PWM) */
+    HAL_StatusTypeDef heater_rtv = CoolingActuator_Init(&htim8,
+                                        ALARM_EN_GPIO_Port, ALARM_EN_Pin,
+                                        PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin);
 
-    /* 3. 注册事件回调 */
+    /* 3. 初始化压力采样适配器(双通道 ADC;超压快路径经执行器锁存) */
+    PressureSampler_Init(&hadc1, &cooling_control_default_config);
+
+    /* 4. 注册事件回调 */
     evt_register_handler(APP_EVT_CONTROL, on_control_event);
     evt_register_handler(APP_EVT_LVGL_TICK, on_lvgl_tick_event);
     evt_register_handler(APP_EVT_VALVE_CHECK, on_valve_check_event);
 
-    /* 4. 启动 PWM 与采样定时器 */
-    HAL_StatusTypeDef rtv_ch1, rtv_ch2;
+    /* 5. 启动调度定时器(500ms 控制 / 10ms LVGL 时基 / 1s 液位检查) */
     HAL_TIM_Base_Start_IT(&htim11);
     HAL_TIM_Base_Start_IT(&htim13);
     HAL_TIM_Base_Start_IT(&htim14);
-    rtv_ch1 = HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-    rtv_ch2 = HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
 
-    /* 上电安全:立即清零 PWM 输出(tim.c 中 Pulse=2000 会在启动瞬间输出 20% 占空比,
-     * 首个控制周期前不允许非零输出)。 */
-    __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 0U);
-    __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 0U);
-
-    if (rtv_ch1 == HAL_OK && rtv_ch2 == HAL_OK) {
+    if (heater_rtv == HAL_OK) {
         cooling_ui_set_heater_state(HEATER_ON);
-    } else if (rtv_ch1 == HAL_ERROR || rtv_ch2 == HAL_ERROR) {
+    } else if (heater_rtv == HAL_ERROR) {
         cooling_ui_set_heater_state(HEATER_ERROR);
     } else {
         cooling_ui_set_heater_state(HEATER_OFF);
@@ -174,11 +165,9 @@ void App_ISR_TIM11_500ms(void) {
     evt_publish_unique(APP_EVT_CONTROL, 0, NULL);
 }
 
-void App_ISR_TIM13_5ms(void) {
-    // 注意:TIM13 实际中断周期为 10ms(CubeMX 默认 Prescaler=180-1, Period=5000-1,
-    //       APB1 定时器时钟 90MHz -> 10ms;函数名沿旧,勿据此推断周期)。
-    //       按实际 10ms 喂给 LVGL 时基(修复:此前喂 5ms 导致 LVGL 时间流速减半)。
-    //       若要真 5ms,请在 CubeMX 中改 TIM13 Period=2500-1。
+void App_ISR_TIM13_10ms(void) {
+    /* TIM13 实际中断周期 10ms(PSC=180-1/ARR=5000-1, APB1 定时器时钟 90MHz),
+     * 按 10ms 喂 LVGL 时基(.ioc 已同步,函数名与实际周期一致)。 */
     lv_tick_inc(10);
     // 发布调度事件让主循环执行 lv_task_handler()
     evt_publish_unique(APP_EVT_LVGL_TICK, 0, NULL);

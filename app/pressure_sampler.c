@@ -3,18 +3,21 @@
  * @brief   压力采样适配器实现(纯硬件 adapter,ISR 上下文)
  */
 #include "pressure_sampler.h"
+#include "cooling_actuator.h"
 
 /* ========================== 单例状态 ========================== */
 
 static ADC_HandleTypeDef       *s_hadc;
 static const CoolingCtrlConfig *s_cfg;
-static GPIO_TypeDef            *s_alarm_port;
-static uint16_t                 s_alarm_pin;
 
-/* 进行中缓冲(ISR 写)与已发布快照(宿主读)分离,消除混读竞态 */
-static float   s_working[2];   /* 本轮进行中的两通道压力 */
-static uint8_t s_chan_phase;   /* 0=通道1, 1=通道2 */
-static uint8_t s_busy;         /* 1=本轮采样进行中 */
+/* 进行中缓冲(ISR 写)与已发布快照(宿主读)分离,消除混读竞态;
+ * 跨上下文共享的发布/读取均置于 PRIMASK 临界区内(见 SAMPLER_CRITICAL_*) */
+#define SAMPLER_CRITICAL_ENTER()  uint32_t _primask = __get_PRIMASK(); __disable_irq()
+#define SAMPLER_CRITICAL_EXIT()   __set_PRIMASK(_primask)
+
+static float          s_working[2];   /* 本轮进行中的两通道压力 */
+static uint8_t        s_chan_phase;   /* 0=通道1, 1=通道2 */
+static volatile uint8_t s_busy;       /* 1=本轮采样进行中(IsBusy 于临界区外读取) */
 
 static PressureSnapshot s_current; /* valid=0 表示尚无完整快照 */
 
@@ -42,13 +45,10 @@ static void sampler_start_channel(uint32_t channel)
 
 /* ========================== API 实现 ========================== */
 
-void PressureSampler_Init(ADC_HandleTypeDef *hadc, const CoolingCtrlConfig *cfg,
-                          GPIO_TypeDef *alarm_port, uint16_t alarm_pin)
+void PressureSampler_Init(ADC_HandleTypeDef *hadc, const CoolingCtrlConfig *cfg)
 {
-    s_hadc       = hadc;
-    s_cfg        = cfg;
-    s_alarm_port = alarm_port;
-    s_alarm_pin  = alarm_pin;
+    s_hadc = hadc;
+    s_cfg  = cfg;
 
     s_busy       = 0;
     s_chan_phase = 0;
@@ -63,11 +63,15 @@ void PressureSampler_Init(ADC_HandleTypeDef *hadc, const CoolingCtrlConfig *cfg,
 
 void PressureSampler_Start(void)
 {
+    SAMPLER_CRITICAL_ENTER();
     if (s_busy) {
+        SAMPLER_CRITICAL_EXIT();
         return; /* 幂等:上一轮未完成时不重入 */
     }
     s_busy       = 1;
     s_chan_phase = 0;
+    SAMPLER_CRITICAL_EXIT();
+
     sampler_start_channel(ADC_CHANNEL_1);
 }
 
@@ -79,7 +83,9 @@ uint8_t PressureSampler_IsBusy(void)
 void PressureSampler_GetSnapshot(PressureSnapshot *out)
 {
     if (out != NULL) {
+        SAMPLER_CRITICAL_ENTER();
         *out = s_current;
+        SAMPLER_CRITICAL_EXIT();
     }
 }
 
@@ -100,30 +106,32 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     float psi = CoolingControl_PressureFromAdc(raw);
 
     if (s_chan_phase == 0) {
-        /* 通道1 完成:立即置位(若超压),然后启动通道2 */
+        /* 通道1 完成:超压立即锁存执行器(加热片归零 + ALARM 置位),然后启动通道2 */
         s_working[0] = psi;
         if (psi > s_cfg->overpressure_psi) {
-            HAL_GPIO_WritePin(s_alarm_port, s_alarm_pin, GPIO_PIN_SET);
+            CoolingActuator_OverpressureLatch();
         }
         s_chan_phase = 1;
         sampler_start_channel(ADC_CHANNEL_2);
     } else {
-        /* 通道2 完成:综合两通道判定(可清除告警),一轮结束并发布快照 */
+        /* 通道2 完成:综合两通道判定(可解除告警),一轮结束并发布快照 */
         s_working[1] = psi;
         uint8_t over = (s_working[0] > s_cfg->overpressure_psi) ||
                        (s_working[1] > s_cfg->overpressure_psi);
         if (over) {
-            HAL_GPIO_WritePin(s_alarm_port, s_alarm_pin, GPIO_PIN_SET);
+            CoolingActuator_OverpressureLatch();
         } else {
-            HAL_GPIO_WritePin(s_alarm_port, s_alarm_pin, GPIO_PIN_RESET);
+            CoolingActuator_OverpressureClear();
         }
 
-        /* 双缓冲发布:一次性锁存,GetSnapshot 永不见半新半旧 */
+        /* 双缓冲发布:临界区内一次性锁存(12 字节拷贝不可被宿主撕裂),
+         * GetSnapshot 在对端临界区内读取,永不见半新半旧 */
+        SAMPLER_CRITICAL_ENTER();
         s_current.pressure[0]  = s_working[0];
         s_current.pressure[1]  = s_working[1];
         s_current.overpressure = over;
         s_current.valid        = 1;
-
-        s_busy = 0;
+        s_busy                 = 0;
+        SAMPLER_CRITICAL_EXIT();
     }
 }

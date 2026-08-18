@@ -33,7 +33,6 @@
 #include "lvgl.h"
 #include "lv_port_disp_template.h"
 #include "lv_port_fs_template.h"
-#include "delay_us.h"
 #include <stdlib.h>
 #include "cooling_ui.h"
 #include "bsp_sdram.h"
@@ -118,9 +117,9 @@ int main(void)
 	BSP_SDRAM_Init_Sequence(&hsdram2);
 	HAL_Delay(20);
   MX_LTDC_Init();
-  /* SD ¿¨·ÇÖÂÃü³õÊ¼»¯:ÎÞ¿¨/Ê§°Ü²»×èÈû¿ª»ú(sdio.c ÒÑÈ¥µô Error_Handler ËÀÑ­»·),
-   * ÓÉÏÂ·½ lv_port_fs_init() µÄ f_mount ¾­ disk_initialize() ÖØÊÔ;
-   * ÈÔÊ§°ÜÊ±Í¼±ê½µ¼¶Îª "!" Õ¼Î»·û,Éè±¸Õý³£½øÈë¹¤×÷Á÷³Ì¡£ */
+  /* SD ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½:ï¿½Þ¿ï¿½/Ê§ï¿½Ü²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(sdio.c ï¿½ï¿½È¥ï¿½ï¿½ Error_Handler ï¿½ï¿½Ñ­ï¿½ï¿½),
+   * ï¿½ï¿½ï¿½Â·ï¿½ lv_port_fs_init() ï¿½ï¿½ f_mount ï¿½ï¿½ disk_initialize() ï¿½ï¿½ï¿½ï¿½;
+   * ï¿½ï¿½Ê§ï¿½ï¿½Ê±Í¼ï¿½ê½µï¿½ï¿½Îª "!" Õ¼Î»ï¿½ï¿½,ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¹¤ï¿½ï¿½ï¿½ï¿½ï¿½Ì¡ï¿½ */
   if (MX_SDIO_SD_Init() == 0U) {
     printf("[main] SD init failed, system continues with placeholder icons.\r\n");
   }
@@ -130,7 +129,7 @@ int main(void)
 	cooling_ui_create();
 
 #if SIM_TEST_ENABLE
-	/* ²âÊÔÄ£Ê½:³ÖÐøÐéÄâÊý¾ÝÇý¶¯ UI(²»½ø¹¤×÷Á÷³Ì),Ö÷Ñ­»·Ö»Ë¢ LVGL */
+	/* ï¿½ï¿½ï¿½ï¿½Ä£Ê½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½),ï¿½ï¿½Ñ­ï¿½ï¿½Ö»Ë¢ LVGL */
 	App_Simulation_Init();
   /* USER CODE END 2 */
 

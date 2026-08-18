@@ -7,6 +7,7 @@
  *   2. 压力罐连接判定边界
  *   3. 超压判定边界(任一通道)
  *   4. 电磁阀使能边界
+ *   5. 显示钳位边界(零点死区 + 量程上限)
  *
  * 构建/运行:sh run_cooling_control.sh(clang wasm + node)
  */
@@ -16,14 +17,7 @@
 
 static int g_failures = 0;
 int g_last_fail_line = 0;
-
-#define CHECK(cond, line) \
-    do { if (!(cond)) { g_failures++; g_last_fail_line = (line); } } while (0)
-
-#define CHECK_NEAR(actual, expected, tol, line) \
-    do { float _a = (actual), _e = (expected); \
-         float _d = _a - _e; if (_d < 0.0f) _d = -_d; \
-         if (!(_d <= (tol))) { g_failures++; g_last_fail_line = (line); } } while (0)
+#include "check.h"
 
 int run_tests(void)
 {
@@ -52,6 +46,14 @@ int run_tests(void)
     CHECK(CoolingControl_ValveEnable(cfg, 20.01f) == 1, __LINE__);
     CHECK(CoolingControl_ValveEnable(cfg, 20.0f) == 0, __LINE__);
     CHECK(CoolingControl_ValveEnable(cfg, 0.0f) == 0, __LINE__);
+
+    /* ---- 5. 显示钳位(死区 <1 归零;量程钳 0~150) ---- */
+    CHECK_NEAR(CoolingControl_DisplayPressure(-5.0f), 0.0f, TOL, __LINE__);
+    CHECK_NEAR(CoolingControl_DisplayPressure(0.99f), 0.0f, TOL, __LINE__);
+    CHECK_NEAR(CoolingControl_DisplayPressure(1.0f), 1.0f, TOL, __LINE__);
+    CHECK_NEAR(CoolingControl_DisplayPressure(75.5f), 75.5f, TOL, __LINE__);
+    CHECK_NEAR(CoolingControl_DisplayPressure(150.0f), 150.0f, TOL, __LINE__);
+    CHECK_NEAR(CoolingControl_DisplayPressure(206.7f), 150.0f, TOL, __LINE__); /* 满量程截断 */
 
     return g_failures;
 }

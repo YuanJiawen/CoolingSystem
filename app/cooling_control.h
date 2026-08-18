@@ -50,6 +50,12 @@ uint8_t CoolingControl_IsTankConnected(const CoolingCtrlConfig *cfg, float press
 uint8_t CoolingControl_IsOverpressure(const CoolingCtrlConfig *cfg,
                                       float pressure_1, float pressure_2);
 
+/**
+ * @brief 显示钳位(纯计算,单源):<1 PSI 零点死区归零,并钳位到 0~150 PSI
+ * @note  仅供显示路径消费;控制判定一律使用原始压力,行为不变。
+ */
+float CoolingControl_DisplayPressure(float psi);
+
 #ifdef __cplusplus
 }
 #endif

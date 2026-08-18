@@ -2,12 +2,13 @@
  * @file    pressure_sampler.h
  * @brief   压力采样适配器(深模块:双通道 ADC 串行采样 + 超压快路径)
  *
- * 设计要点(架构评审 2026-08-17,候选 1):
+ * 设计要点(架构评审 2026-08-17/2026-08-18):
  * - 深模块:小 interface(Start/IsBusy/GetSnapshot),集中实现
- *   双通道序列化、ADC 换算、超压判定与 ALARM GPIO。
+ *   双通道序列化、ADC 换算、超压判定;超压动作(加热片归零 + ALARM)
+ *   委托冷却执行器,采样器不再持有告警引脚。
  * - ISR(HAL_ADC_ConvCpltCallback)由本模块接管,宿主不感知采样时序。
- * - 双缓冲:ISR 写进行中缓冲,一轮完整完成后一次性发布快照,
- *   GetSnapshot 只读已发布快照,杜绝「新 ch1 + 旧 ch2」混读竞态。
+ * - 双缓冲 + 临界区:ISR 写进行中缓冲,一轮完整后在 PRIMASK 临界区内
+ *   发布快照,GetSnapshot 于临界区内拷贝 —— 发布/读取原子,杜绝撕裂。
  * - 纯硬件 adapter:依赖 HAL(ADC/GPIO)与 cooling_control 的换算函数。
  */
 #ifndef PRESSURE_SAMPLER_H
@@ -33,13 +34,10 @@ typedef struct {
 
 /**
  * @brief 初始化采样器(单例,对应唯一 ADC1)
- * @param hadc       ADC 句柄(hadc1)
- * @param cfg        冷却控制配置(取超压阈值)
- * @param alarm_port 超压告警 GPIO 端口(ALARM_EN)
- * @param alarm_pin  超压告警 GPIO 引脚(ALARM_EN)
+ * @param hadc ADC 句柄(hadc1)
+ * @param cfg  冷却控制配置(取超压阈值)
  */
-void    PressureSampler_Init(ADC_HandleTypeDef *hadc, const CoolingCtrlConfig *cfg,
-                             GPIO_TypeDef *alarm_port, uint16_t alarm_pin);
+void    PressureSampler_Init(ADC_HandleTypeDef *hadc, const CoolingCtrlConfig *cfg);
 
 /**
  * @brief 启动新一轮双通道采样(幂等:仅空闲时生效)

@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Device/ST/STM32F4xx/Include;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Include;../delay;../demo_lvgl;../User;..\lwrb\include\lwrb;..\event_framework;..\app;..\FatFs\inc;..\usart</IncludePath>
+              <IncludePath>../Core/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Device/ST/STM32F4xx/Include;D:/Repository/STM32Cube_FW_F4_V1.28.2/Drivers/CMSIS/Include;../demo_lvgl;../User;..\lwrb\include\lwrb;..\event_framework;..\app;..\FatFs\inc;..\usart</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -861,16 +861,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>dwt_delay</GroupName>
-          <Files>
-            <File>
-              <FileName>delay_us.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\delay\delay_us.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>ltd_drv</GroupName>
           <Files>
             <File>
@@ -908,11 +898,6 @@
               <FileType>1</FileType>
               <FilePath>..\fonts lib\my_font_chinese_24.c</FilePath>
             </File>
-            <File>
-              <FileName>my_font_chinese_32.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\fonts lib\my_font_chinese_32.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -947,6 +932,11 @@
               <FileName>cooling_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\app\cooling_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>cooling_actuator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\cooling_actuator.c</FilePath>
             </File>
             <File>
               <FileName>sim_test.c</FileName>

@@ -11,7 +11,7 @@
 #define SIM_TEST_H
 
 /* ==================== 测试开关(1 开启, 0 关闭) ==================== */
-#define SIM_TEST_ENABLE  1
+#define SIM_TEST_ENABLE  0
 
 #ifdef __cplusplus
 extern "C" {

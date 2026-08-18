@@ -36,3 +36,14 @@ uint8_t CoolingControl_IsOverpressure(const CoolingCtrlConfig *cfg,
     return ((pressure_1 > cfg->overpressure_psi) ||
             (pressure_2 > cfg->overpressure_psi)) ? 1U : 0U;
 }
+
+float CoolingControl_DisplayPressure(float psi)
+{
+    if (psi < 1.0f) {
+        return 0.0f; /* 零点死区:滤除 <1 PSI 底噪 */
+    }
+    if (psi > 150.0f) {
+        return 150.0f; /* 显示量程上限 */
+    }
+    return psi;
+}

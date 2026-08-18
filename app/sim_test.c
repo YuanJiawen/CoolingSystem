@@ -16,10 +16,12 @@
 
 #include "cooling_ui.h"
 #include "lvgl.h"
-#include "main.h"       /* HAL_TIM_Base_Start_IT, tim 句柄 */
+#include "main.h"       /* HAL_TIM_Base_Start_IT, tim 句柄, 引脚宏 */
 #include "cooling_control_config.h"  /* cooling_control_default_config 单源阈值 */
+#include "cooling_actuator.h"        /* 安全输出与工作模式同接口(单写者) */
 
-/* 外部定时器句柄(供 LVGL tick 推进) */
+/* 外部定时器句柄(供 LVGL tick 推进;htim8 供执行器初始化) */
+extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim13;
 
 /* 压力三角波参数 */
@@ -60,22 +62,19 @@ static void sim_timer_cb(lv_timer_t * t)
     cooling_ui_set_tank_pressure(s_press_tank);
     cooling_ui_set_pipe_pressure(s_press_pipe);
 
-    /* ---- 2. 超压警告(随压力实时变化,同步 PB11 硬件报警) ---- */
+    /* ---- 2. 超压警告(随压力实时变化;安全输出经执行器,与工作模式同接口) ---- */
     if (s_press_tank > cooling_control_default_config.overpressure_psi ||
         s_press_pipe > cooling_control_default_config.overpressure_psi) {
         cooling_ui_show_overpressure_warning();
-        HAL_GPIO_WritePin(ALARM_EN_GPIO_Port, ALARM_EN_Pin, GPIO_PIN_SET);
+        CoolingActuator_OverpressureLatch();
     } else {
         cooling_ui_hide_overpressure_warning();
-        HAL_GPIO_WritePin(ALARM_EN_GPIO_Port, ALARM_EN_Pin, GPIO_PIN_RESET);
+        CoolingActuator_OverpressureClear();
     }
 
-    /* ---- 3. PB10 压力控制器使能(管道压力 > 20 PSI) ---- */
-    if (s_press_pipe > cooling_control_default_config.ctrl_enable_psi) {
-        HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_SET);
-    } else {
-        HAL_GPIO_WritePin(PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin, GPIO_PIN_RESET);
-    }
+    /* ---- 3. 压力控制器使能(管道压力 > 20 PSI) ---- */
+    CoolingActuator_ValveSetEnable(
+        (s_press_pipe > cooling_control_default_config.ctrl_enable_psi) ? 1U : 0U);
 
     /* ---- 4. 随机设备状态 ---- */
     cooling_ui_set_tank_connection((sim_rand_u32() & 1U) ? TANK_CONNECTED : TANK_DISCONNECTED);
@@ -86,8 +85,12 @@ static void sim_timer_cb(lv_timer_t * t)
 
 void App_Simulation_Init(void)
 {
-    /* 仅启动 TIM13 供 LVGL tick 推进(事件框架与 PWM/ADC 不启) */
+    /* 仅启动 TIM13 供 LVGL tick 推进(事件框架与 ADC 不启);
+     * 执行器仍经正式接口初始化(PWM 以零占空比启动,无实际输出) */
     HAL_TIM_Base_Start_IT(&htim13);
+    CoolingActuator_Init(&htim8,
+                         ALARM_EN_GPIO_Port, ALARM_EN_Pin,
+                         PRESSURE_CTRL_EN_GPIO_Port, PRESSURE_CTRL_EN_Pin);
 
     s_sim_timer = lv_timer_create(sim_timer_cb, 250, NULL);
 }

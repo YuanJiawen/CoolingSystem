@@ -134,8 +134,8 @@ void MX_TIM13_Init(void)
 {
 
   /* USER CODE BEGIN TIM13_Init 0 */
-	//TIM13 中断实际 10ms(CubeMX 默认 PSC=180-1/ARR=5000-1, APB1 Tim 90MHz);
-	//LVGL 时基按实际 10ms 喂给(见 app_control.c App_ISR_TIM13_5ms)
+	//TIM13 中断周期 10ms(PSC=180-1/ARR=5000-1, APB1 Tim 90MHz),驱动 LVGL 时基;
+	//参数已同步至 .ioc,钩子 App_ISR_TIM13_10ms 与实际周期一致
   /* USER CODE END TIM13_Init 0 */
 
   /* USER CODE BEGIN TIM13_Init 1 */

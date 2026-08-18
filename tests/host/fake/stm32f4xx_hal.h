@@ -64,6 +64,13 @@ typedef struct {
 } ADC_HandleTypeDef;
 
 typedef struct {
+    int Instance; /* TIM 只需句柄身份,寄存器访问经 __HAL_TIM_SET_COMPARE 记录 */
+} TIM_HandleTypeDef;
+
+#define TIM_CHANNEL_1 0U
+#define TIM_CHANNEL_2 1U
+
+typedef struct {
     uint32_t Channel, Rank, SamplingTime;
 } ADC_ChannelConfTypeDef;
 
@@ -122,6 +129,9 @@ typedef enum {
 /* ---------- NVIC ---------- */
 #define SDIO_IRQn 49
 
+/* 临界区(PRIMASK)仪器化 —— 实现见 fake/cmsis_compiler.h */
+#include "cmsis_compiler.h"
+
 /* ---------- RCC 使能宏 ---------- */
 #define __HAL_RCC_SDIO_CLK_ENABLE()   do { } while (0)
 #define __HAL_RCC_SDIO_CLK_DISABLE()  do { } while (0)
@@ -146,6 +156,12 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState Pin
 HAL_StatusTypeDef HAL_ADC_ConfigChannel(ADC_HandleTypeDef *hadc, ADC_ChannelConfTypeDef *sConfig);
 HAL_StatusTypeDef HAL_ADC_Start_IT(ADC_HandleTypeDef *hadc);
 uint32_t HAL_ADC_GetValue(ADC_HandleTypeDef *hadc);
+HAL_StatusTypeDef HAL_TIM_PWM_Start(TIM_HandleTypeDef *htim, uint32_t Channel);
+
+/* ---------- PWM compare(仪器化:由测试替身记录通道/值/顺序) ---------- */
+void fake_tim_set_compare(TIM_HandleTypeDef *htim, uint32_t channel, uint32_t value);
+#define __HAL_TIM_SET_COMPARE(HTIM, CHANNEL, VALUE) \
+    fake_tim_set_compare((HTIM), (CHANNEL), (VALUE))
 void HAL_NVIC_SetPriority(uint32_t IRQn, uint32_t PreemptPriority, uint32_t SubPriority);
 void HAL_NVIC_EnableIRQ(uint32_t IRQn);
 void HAL_NVIC_DisableIRQ(uint32_t IRQn);

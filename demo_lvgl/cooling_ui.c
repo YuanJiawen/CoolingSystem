@@ -5,6 +5,7 @@
  */
 
 #include "cooling_ui.h"
+#include "cooling_control.h"
 #include <stdio.h>
 
 /* ==================== 外部字体声明 ==================== */
@@ -394,9 +395,8 @@ void cooling_ui_set_tank_pressure(float pressure)
         return;
     }
 
-    if (pressure < 0) pressure = 0;
-    if (pressure > 150) pressure = 150;
-    
+    pressure = CoolingControl_DisplayPressure(pressure); /* 单源钳位(死区+量程) */
+
     int p_int = (int)pressure;
     int p_frac = (int)((pressure - (float)p_int) * 10);
 
@@ -421,8 +421,7 @@ void cooling_ui_set_pipe_pressure(float pressure)
         return;
     }
 
-    if (pressure < 0) pressure = 0;
-    if (pressure > 150) pressure = 150;
+    pressure = CoolingControl_DisplayPressure(pressure); /* 单源钳位(死区+量程) */
 
     int p_int = (int)pressure;
     int p_frac = (int)((pressure - (float)p_int) * 10);

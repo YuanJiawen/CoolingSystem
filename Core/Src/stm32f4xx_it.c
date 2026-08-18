@@ -385,7 +385,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
     else if (htim->Instance == TIM13) {
 				
-        App_ISR_TIM13_5ms();//lvgl 
+        App_ISR_TIM13_10ms();//lvgl 
     }
     else if (htim->Instance == TIM14) {
         App_ISR_TIM14_1s();//liquid check
